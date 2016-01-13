@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using LyricDownload;
 
@@ -14,7 +15,6 @@ namespace LyricDownloadConsole
 
         public void DoWork()
         {
-            
             const string rootDir = "C:/TmpMusic/";
 
             //Populate songs to download
