@@ -1,0 +1,5 @@
+C:\Code\Lib\AsyncExamples\LyricDownload\bin\Debug\LyricDownload.dll
+C:\Code\Lib\AsyncExamples\LyricDownload\bin\Debug\LyricDownload.pdb
+C:\Code\Lib\AsyncExamples\LyricDownload\obj\Debug\LyricDownload.csprojResolveAssemblyReference.cache
+C:\Code\Lib\AsyncExamples\LyricDownload\obj\Debug\LyricDownload.dll
+C:\Code\Lib\AsyncExamples\LyricDownload\obj\Debug\LyricDownload.pdb

@@ -1,0 +1,5 @@
+C:\Code\Lib\AsyncExamples\AsyncExample\bin\Debug\AsyncExample.dll
+C:\Code\Lib\AsyncExamples\AsyncExample\bin\Debug\AsyncExample.pdb
+C:\Code\Lib\AsyncExamples\AsyncExample\obj\Debug\AsyncExample.dll
+C:\Code\Lib\AsyncExamples\AsyncExample\obj\Debug\AsyncExample.pdb
+C:\Code\Lib\AsyncExamples\AsyncExample\obj\Debug\AsyncExample.csprojResolveAssemblyReference.cache
