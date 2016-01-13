@@ -1,4 +1,6 @@
+using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LyricDownload
@@ -20,13 +22,14 @@ namespace LyricDownload
                 Directory.CreateDirectory(dir);
 
                 var fullPath = dir + "/" + filename + ".html";
-
+                
                 using (var fs = new FileStream(fullPath, FileMode.Create))
                 using (var sr = new StreamWriter(fs))
                 {
                     var writeTask = sr.WriteAsync(fileContents);
                     writeTask.Wait();
                 }
+                Console.WriteLine(Thread.CurrentThread.Name + "--" + fullPath );
                 return fullPath;
             });
 

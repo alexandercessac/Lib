@@ -10,17 +10,27 @@ namespace LyricDownloadConsole
     {
         private static bool _useAsyncSongs;
 
-        private const bool QuitBeforeWorkIsDone = false;
+        private static bool QuitBeforeWorkIsDone;
 
         public void DoWork()
         {
+            
+            const string rootDir = "C:/TmpMusic/";
 
             //Populate songs to download
-            var music = new List<Artist> { GetDrakeSongs(), GetLilWayne(), Get2Chainz() };
+            var music = new List<IArtist>
+            {
+                GetArtist(rootDir, "Drake",new List<string>{"hotline-bling","all-me","forever"} ),
+                GetArtist(rootDir, "Lil-wayne",new List<string>{"6-foot-7-foot","love-me","Lollipop"} ),
+                GetArtist(rootDir, "2-chainz",new List<string>{"im-different","no-lie","feds-watching"} ),
+                
+            };
 
-            //update UI
+            //update UI TODO: clean up
             Console.WriteLine("Press Y to use 'aysnc' keywork implementation");
-            _useAsyncSongs = Console.ReadKey().KeyChar == 'y';
+            var input = Console.ReadKey().KeyChar;
+            _useAsyncSongs =  input == 'y';
+            QuitBeforeWorkIsDone = input == 'q';
             Console.WriteLine("\nDownloading...");
 
             //Set start time to track processing duration
@@ -63,9 +73,7 @@ namespace LyricDownloadConsole
             var result = await Task.WhenAll(work);
 
             //-----------NOTE: This code will not execute-------------------\\
-            //Awaiting a task in the main thread of a console app will      \\
-            //end the current running thread causing the application to     \\
-            //close before the awaited task can complete.                   \\
+            // this is not true
             //--------------------------------------------------------------\\
 
             //Loop through each artist
@@ -77,46 +85,15 @@ namespace LyricDownloadConsole
 
         #region Static Methods to Populate Artists with songs
 
-        private static Artist GetDrakeSongs()
+        private static IArtist GetArtist(string rootDir, string artistName, List<string> songTitles)
         {
-            var drake = new Artist(new FileWriter("C:/TmpMusic/Drake"))
+            var myArtist = new Artist(new FileWriter(rootDir + artistName))
             {
-                Url = "http://genius.com/Drake",
+                Url = "http://genius.com/" + artistName
             };
+            songTitles.ForEach(x=>myArtist.Songs.Add(GetISong(myArtist.Url, x)));
 
-            drake.Songs.Add(GetISong(drake.Url, "hotline-bling"));
-            drake.Songs.Add(GetISong(drake.Url, "all-me"));
-            drake.Songs.Add(GetISong(drake.Url, "forever"));
-
-            return drake;
-        }
-
-        private static Artist GetLilWayne()
-        {
-            var lilWayne = new Artist(new FileWriter("C:/TmpMusic/Lil-wayne"))
-            {
-                Url = "http://genius.com/Lil-wayne",
-            };
-
-            lilWayne.Songs.Add(GetISong(lilWayne.Url, "6-foot-7-foot"));
-            lilWayne.Songs.Add(GetISong(lilWayne.Url, "love-me"));
-            lilWayne.Songs.Add(GetISong(lilWayne.Url, "Lollipop"));
-
-            return lilWayne;
-        }
-
-        private static Artist Get2Chainz()
-        {
-            var twoChainz = new Artist(new FileWriter("C:/TmpMusic/2-chainz"))
-            {
-                Url = "http://genius.com/2-chainz",
-            };
-
-            twoChainz.Songs.Add(GetISong(twoChainz.Url, "im-different"));
-            twoChainz.Songs.Add(GetISong(twoChainz.Url, "no-lie"));
-            twoChainz.Songs.Add(GetISong(twoChainz.Url, "feds-watching"));
-
-            return twoChainz;
+            return myArtist;
         }
 
         #endregion
