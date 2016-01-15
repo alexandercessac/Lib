@@ -24,7 +24,7 @@ namespace LyricDownload
 
         public Task<string> WriteFile(ISong song)
         {
-            Task.Delay(25000).Wait();
+            //Task.Delay(25000).Wait();
 
             return new TaskFactory<string>().StartNew(() =>
             {
