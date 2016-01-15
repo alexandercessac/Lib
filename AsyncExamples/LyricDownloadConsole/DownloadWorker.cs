@@ -11,7 +11,7 @@ namespace LyricDownloadConsole
     {
         private static bool _useAsyncSongs;
 
-        private static bool QuitBeforeWorkIsDone;
+        private static bool _useAwaitInMainThread;
 
         public void DoWork()
         {
@@ -20,9 +20,9 @@ namespace LyricDownloadConsole
             //Populate songs to download
             var music = new List<IArtist>
             {
-                GetArtist(rootDir, "Drake",new List<string>{"hotline-bling","all-me","forever"} ),
-                GetArtist(rootDir, "Lil-wayne",new List<string>{"6-foot-7-foot","love-me","Lollipop"} ),
-                GetArtist(rootDir, "2-chainz",new List<string>{"im-different","no-lie","feds-watching"} ),
+                getSongs(rootDir, "Drake",new List<string>{"hotline-bling","all-me","forever"} ),
+                getSongs(rootDir, "Lil-wayne",new List<string>{"6-foot-7-foot","love-me","Lollipop"} ),
+                getSongs(rootDir, "2-chainz",new List<string>{"im-different","no-lie","feds-watching"} ),
                 
             };
 
@@ -30,7 +30,7 @@ namespace LyricDownloadConsole
             Console.WriteLine("Press Y to use 'aysnc' keywork implementation");
             var input = Console.ReadKey().KeyChar;
             _useAsyncSongs =  input == 'y';
-            QuitBeforeWorkIsDone = input == 'q';
+            _useAwaitInMainThread = input == 'q';
             Console.WriteLine("\nDownloading...");
 
             //Set start time to track processing duration
@@ -43,7 +43,7 @@ namespace LyricDownloadConsole
 
             //Show why it is bad to use await on the
             //main thread of a console application
-            if (QuitBeforeWorkIsDone)
+            if (_useAwaitInMainThread)
             { AwaitWriteResults(work); } //Application will end without writting results to console when using this implementation
             else
             { WaitWriteResults(work); }
@@ -85,15 +85,15 @@ namespace LyricDownloadConsole
 
         #region Static Methods to Populate Artists with songs
 
-        private static IArtist GetArtist(string rootDir, string artistName, List<string> songTitles)
+        private static List<ISong> getSongs(string rootDir, string artistName, List<string> songTitles)
         {
-            var myArtist = new Artist(new FileWriter(rootDir + artistName))
-            {
-                Url = "http://genius.com/" + artistName
-            };
-            songTitles.ForEach(x=>myArtist.Songs.Add(GetISong(myArtist.Url, x)));
 
-            return myArtist;
+            var songsToDownload = new List<ISong>();
+
+            songTitles.ForEach(x => songsToDownload.Add(GetISong("http://genius.com/" + artistName, x)));
+            
+
+            return songsToDownload;
         }
 
         #endregion

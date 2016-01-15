@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LyricDownload", "LyricDownl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LyricDownloadConsole", "LyricDownloadConsole\LyricDownloadConsole.csproj", "{7835D726-A433-4E48-83F0-8CCFAF9DA662}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LyricDownloadWebApp", "LyricDownloadWebApp\LyricDownloadWebApp.csproj", "{F4AB6B34-675C-410A-9B22-8A7F4F193014}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LyricDownloadWebApp.Tests", "LyricDownloadWebApp.Tests\LyricDownloadWebApp.Tests.csproj", "{7C8B5E13-5C6F-4A53-8435-7985270078BD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{7835D726-A433-4E48-83F0-8CCFAF9DA662}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7835D726-A433-4E48-83F0-8CCFAF9DA662}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7835D726-A433-4E48-83F0-8CCFAF9DA662}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4AB6B34-675C-410A-9B22-8A7F4F193014}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4AB6B34-675C-410A-9B22-8A7F4F193014}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4AB6B34-675C-410A-9B22-8A7F4F193014}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4AB6B34-675C-410A-9B22-8A7F4F193014}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C8B5E13-5C6F-4A53-8435-7985270078BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C8B5E13-5C6F-4A53-8435-7985270078BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C8B5E13-5C6F-4A53-8435-7985270078BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C8B5E13-5C6F-4A53-8435-7985270078BD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

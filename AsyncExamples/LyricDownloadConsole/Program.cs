@@ -10,10 +10,11 @@ namespace LyricDownloadConsole
 
             while (repeat)
             {
-                new DownloadWorker().DoWork();
-                Console.WriteLine("press 'y' to run application again.");
+                
+                Console.WriteLine("press 'y' to run application again upon completion.");
                 repeat = Console.ReadKey().KeyChar == 'y';
                 Console.WriteLine();
+                new DownloadWorker().DoWork();
             }
 
         }

@@ -12,29 +12,29 @@ namespace LyricDownload
         Task<string> GetLyrics();
     }
 
-    public class Songs : List<ISong>
-    {
-        public async Task<List<string>> GetAllLyrics()
-        {
-            var retList = new List<string>();
-            foreach (var tmpSong in this)
-            {
-                retList.Add(await tmpSong.GetLyrics());
-            }
+    //public class Songs : List<ISong>
+    //{
+    //    public async Task<List<string>> GetAllLyrics()
+    //    {
+    //        var retList = new List<string>();
+    //        foreach (var tmpSong in this)
+    //        {
+    //            retList.Add(await tmpSong.GetLyrics());
+    //        }
 
-            return retList;
-        }
-    }
+    //        return retList;
+    //    }
+    //}
 
     public class Song : ISong
     {
         public string Url { get; private set; }
         public string Name { get; private set; }
 
-        public Song(string parentUrl, string name)
+        public Song(string rootUrl, string name)
         {
             Name = name;
-            Url = string.Format("{0}-{1}-lyrics", parentUrl, name);
+            Url = string.Format("{0}/{1}-lyrics", rootUrl.Trim('/'), name);
         }
 
         public Task<string> GetLyrics()
@@ -44,11 +44,13 @@ namespace LyricDownload
 
         private string GetContents()
         {
-            var clientTask = new HttpClient().GetStringAsync(Url);
+            return new HttpClient().GetStringAsync(Url).Result;
+            
+            //var clientTask = new HttpClient().GetStringAsync(Url);
 
-            clientTask.Wait();
+            //clientTask.Wait();
 
-            return clientTask.Result;
+            //return clientTask.Result;
         }
     }
 
@@ -57,10 +59,10 @@ namespace LyricDownload
         public string Url { get; private set; }
         public string Name { get; private set; }
 
-        public AsyncSong(string parentUrl, string name)
+        public AsyncSong(string rootUrl, string name)
         {
             Name = name;
-            Url = string.Format("{0}-{1}-lyrics", parentUrl, name);
+            Url = string.Format("{0}/{1}-lyrics", rootUrl.Trim('/'), name);
         }
 
         public async Task<string> GetLyrics()
