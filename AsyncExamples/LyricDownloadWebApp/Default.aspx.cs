@@ -33,7 +33,7 @@ namespace LyricDownloadWebApp
 
         protected void btnSubmit_Click(object sender, EventArgs e)
         {
-            _music = new Music(new FileWriter("C:/tmpMusic/"));
+            _music = new Music(new ContinuationFileWriter("C:/tmpMusic/"));
 
             litOutput.Text = "";
 
@@ -53,7 +53,7 @@ namespace LyricDownloadWebApp
             }
             else
             {
-                UpdateUi(_music.GetAllSongLyrics());    
+                UpdateUi(_music.ContinueWithAllSongLyrics().Result);    
             }
             
 
@@ -85,7 +85,7 @@ namespace LyricDownloadWebApp
         {
             foreach (var selectedSong in songsToAdd.Cast<ListItem>().Where(song => song.Selected))
             {
-                _music.Songs.Add(new Song(RapGeniusUrl, selectedSong.Value));
+                _music.Songs.Add(new ContinuationSong(RapGeniusUrl, selectedSong.Value));
             }
         }
 

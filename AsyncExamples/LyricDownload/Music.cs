@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net.Mail;
 using System.Threading.Tasks;
 
 namespace LyricDownload
@@ -24,6 +26,24 @@ namespace LyricDownload
             Songs = new List<ISong>();
         }
 
+        private Task<string[]> GetWorkTask()
+        {
+            var work = new Task<string>[Songs.Count];
+
+            //Setting download task for each song to download
+            for (var i = 0; i < Songs.Count; i++)
+            {
+                //start downloading/writting current song and add task to work[]
+                work[i] = Writer.WriteFile(Songs[i]);
+            }
+
+            return Task.WhenAll(work).ContinueWith(x =>
+            {
+                Task.Delay(5000).Wait();
+                return x.Result;
+            }, TaskContinuationOptions.ExecuteSynchronously);
+        }
+
         private Task<string>[] GetWork()
         {
             var work = new Task<string>[Songs.Count];
@@ -47,6 +67,20 @@ namespace LyricDownload
             return Task.WhenAll(work).Result;
         }
 
+        public Task<string[]> GetAllSongLyricsTask()
+        {
+            var resultOfGetWork = new TaskFactory<string[]>().StartNew(() =>
+            {
+                var tmp = Task.WhenAll(GetWork());
+
+                tmp.Wait();
+
+                return tmp.Result;
+            });
+
+            return resultOfGetWork;
+        }
+
         public async Task<string[]> AwaitAllSongLyrics()
         {
             //Create list of tasks representing lyric downloads
@@ -56,27 +90,29 @@ namespace LyricDownload
             return await Task.WhenAll(work);
         }
 
-
-        public async Task<string[]> ContinueWithAllSongLyrics()
+        public Task<string[]> ContinueWithAllSongLyrics()
         {
-            var results = new string[Songs.Count];
-
             //Create list of tasks representing lyric downloads
-            var work = GetWork();
+
+
+            return GetWorkTask().ContinueWith(x =>
+            {
+                Task.Delay(5000).Wait();
+                return x.Result;
+            },TaskContinuationOptions.ExecuteSynchronously);
+
 
             //All songs have started downloading
+
             //create task that will execute the continuation when complete
-            Task.WhenAll(work).ContinueWith(myTask =>
-            {
-                results = myTask.Result;
-            }, TaskContinuationOptions.ExecuteSynchronously).Wait();
-            
-            
-            
-            
-            //wait on WhenAll task to complete so that results will be set before function returns
-            
-            return results;
+            //return Task.WhenAll(work);
+            //Continuation that will return the result of all tasks
+            //.ContinueWith(myTask => myTask.Result, TaskScheduler.FromCurrentSynchronizationContext());
+            //.ContinueWith(myTask => myTask.Result, TaskContinuationOptions.ExecuteSynchronously);
+
+
+
+
         }
 
     }

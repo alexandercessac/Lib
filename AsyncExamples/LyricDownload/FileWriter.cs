@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 
 namespace LyricDownload
 {
@@ -24,10 +25,11 @@ namespace LyricDownload
 
         public Task<string> WriteFile(ISong song)
         {
-            //Task.Delay(25000).Wait();
 
             return new TaskFactory<string>().StartNew(() =>
             {
+                Task.Delay(25000).Wait();
+
                 //Get task that will write the result of GetLyrics to a file with the name name as song.Name
                 var writeFileTask = WriteFile(song.GetLyrics().Result, song.Name);
 
@@ -50,26 +52,22 @@ namespace LyricDownload
         public Task<string> WriteFile(string fileContents, string fileName)
         {
             //Return task that will write file contents to RootDir/filename
-            return HelperTasks.Write(fileContents, RootDir, fileName);
+            return HelperTasks.AsyncWrite(fileContents, RootDir, fileName);
         }
 
         public Task<string> WriteFile(ISong song)
         {
-            return new TaskFactory<string>().StartNew(() =>
-            {
-                //Get task that will write the result of GetLyrics to a file with the name name as song.Name
-
-                song.GetLyrics().ContinueWith(myTask =>
-                {
-                    //Will execute when song.GetLyrics is complete
-                    WriteFile(myTask.Result, song.Name);
-                }, TaskContinuationOptions.ExecuteSynchronously);
-
-
-
-                //Return immediately
-                return RootDir + "/" + song.Name + ".html";
-            });
+            return song.GetLyrics().ContinueWith(downloadedLyrics => 
+                //when GetLyrics has completed, continue with downloadedLyrics as the completed task {donwloadedLyrics = song.GetLyrics}
+                    WriteFile(downloadedLyrics.Result, song.Name)
+                    //When WriteFile has completed, continue with its result
+                    .ContinueWith(x =>
+                    {
+                        Task.Delay(5000).Wait();
+                        return x.Result;
+                    }, TaskContinuationOptions.ExecuteSynchronously)
+                    //result of continuation (task that returns the result of WriteFile)
+                    .Result, TaskContinuationOptions.ExecuteSynchronously);
         }
     }
 

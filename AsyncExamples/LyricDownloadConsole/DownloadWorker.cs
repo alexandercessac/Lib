@@ -44,16 +44,19 @@ namespace LyricDownloadConsole
 
             //TODO: handle method of Music used based on user input
 
-            
+            //TODO: test this jank
+            //var tmp = new Task<string>(()=> "just like await?").ContinueWith(Console.WriteLine,TaskScheduler.FromCurrentSynchronizationContext());
 
             //Show why it is bad to use await on the
             //main thread of a console application
             if (_useAwaitInMainThread)
             { AwaitWriteResults(music.AwaitAllSongLyrics()); } //Application will end without writting results to console when using this implementation
             else
-            { WaitWriteResults(music.GetAllSongLyrics()); }
+            { WaitWriteResults(music.ContinueWithAllSongLyrics().Result); }
 
             Console.WriteLine("#####Download complete in {0}ms!#####\n", DateTime.Now.Subtract(startTime).TotalMilliseconds);
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey();
         }
 
         private static void GetUserInput()

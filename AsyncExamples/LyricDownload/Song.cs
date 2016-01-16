@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net.Http;
+using System.Runtime.Remoting.Messaging;
 using System.Threading.Tasks;
 
 namespace LyricDownload
@@ -45,7 +46,7 @@ namespace LyricDownload
         private string GetContents()
         {
             return new HttpClient().GetStringAsync(Url).Result;
-            
+
             //var clientTask = new HttpClient().GetStringAsync(Url);
 
             //clientTask.Wait();
@@ -68,6 +69,29 @@ namespace LyricDownload
         public async Task<string> GetLyrics()
         {
             return await new HttpClient().GetStringAsync(Url);
+        }
+    }
+
+    public class ContinuationSong : ISong
+    {
+        public string Url { get; private set; }
+        public string Name { get; private set; }
+
+        public ContinuationSong(string rootUrl, string name)
+        {
+            Name = name;
+            Url = string.Format("{0}/{1}-lyrics", rootUrl.Trim('/'), name);
+        }
+
+        public Task<string> GetLyrics()
+        {
+            return new HttpClient().GetStringAsync(Url)
+                .ContinueWith(res =>
+                {
+                    Task.Delay(5000).Wait();
+                    return res.Result;
+                }
+                , TaskContinuationOptions.ExecuteSynchronously);
         }
     }
 }
