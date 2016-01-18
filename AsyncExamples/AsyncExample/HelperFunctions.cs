@@ -15,7 +15,7 @@ namespace AsyncExample
 
         public static Task<int> GetOneTaskFactory()
         {
-            return new TaskFactory<int>().StartNew(() =>
+            return Task.Run(() =>
             {
                 Console.WriteLine("--Getting one...");
                 Task.Delay(2000).Wait();

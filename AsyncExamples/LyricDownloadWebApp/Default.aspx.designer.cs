@@ -10,7 +10,7 @@
 namespace LyricDownloadWebApp {
     
     
-    public partial class _Default {
+    public partial class Default {
         
         /// <summary>
         /// cbxAsync control.
@@ -22,31 +22,22 @@ namespace LyricDownloadWebApp {
         protected global::System.Web.UI.WebControls.CheckBox cbxAsync;
         
         /// <summary>
-        /// cbxDrakeSongs control.
+        /// cbxAsyncFileWriter control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.CheckBoxList cbxDrakeSongs;
+        protected global::System.Web.UI.WebControls.CheckBox cbxAsyncFileWriter;
         
         /// <summary>
-        /// cbxTwoChainzSongs control.
+        /// cbxSongs control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.CheckBoxList cbxTwoChainzSongs;
-        
-        /// <summary>
-        /// cbxLilWayneSongs control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.CheckBoxList cbxLilWayneSongs;
+        protected global::System.Web.UI.WebControls.CheckBoxList cbxSongs;
         
         /// <summary>
         /// btnSubmit control.

@@ -10,24 +10,21 @@ namespace LyricDownloadConsole
     {
         private static bool _useAsyncSongs;
 
-        private static bool _useAwaitInMainThread;
-
-        private static bool _taskWait;
+        private static bool _blockOnResult;
         private static bool _awaitCompletion;
         private static bool _useContinuation;
+
+        private DateTime startTime;
 
         public void DoWork()
         {
             const string rootDir = "C:/TmpMusic/";
 
-            var music = new Music(new FileWriter(rootDir));
 
-            var allSongs = new List<string>
-            {
-                "Drake-hotline-bling", "Drake-all-me", "Drake-forever",
-                "Lil-wayne-6-foot-7-foot", "Lil-wayne-love-me","Lil-wayne-Lollipop",
-                "2-chainz-im-different", "2-chainz-no-lie", "2-chainz-feds-watching"
-            };
+
+            var music = new Music(new ContinuationFileWriter(rootDir));
+
+            var allSongs = Music.DefaultPlayList;
 
             //Populate songs to download
             GetSongs(allSongs).ForEach(x => music.Songs.Add(x));
@@ -37,26 +34,55 @@ namespace LyricDownloadConsole
             GetUserInput();
 
             //Set start time to track processing duration
-            var startTime = DateTime.Now;
+            startTime = DateTime.Now;
 
             //Collect all tasks to be done
 
 
-            //TODO: handle method of Music used based on user input
-
-            //TODO: test this jank
-            //var tmp = new Task<string>(()=> "just like await?").ContinueWith(Console.WriteLine,TaskScheduler.FromCurrentSynchronizationContext());
 
             //Show why it is bad to use await on the
             //main thread of a console application
-            if (_useAwaitInMainThread)
-            { AwaitWriteResults(music.AwaitAllSongLyrics()); } //Application will end without writting results to console when using this implementation
+            if (_blockOnResult)
+            {
+                var downloadTask = _awaitCompletion ? music.AwaitAllSongLyricsAsync() : music.GetAllSongLyricsTask();
+
+                var result = downloadTask.Result;
+
+                UpdatUi(result);
+
+            } 
             else
-            { WaitWriteResults(music.ContinueWithAllSongLyrics().Result); }
+            {
+
+                var downloadTask = music.GetAllSongLyricsTask();
+
+                if (_useContinuation)
+                {
+                    downloadTask.ContinueWith(t => 
+                        UpdatUi(t.Result));
+                }
+                else
+                {
+                    var result = downloadTask.Result;
+
+                    UpdatUi(result);
+
+                }
+
+
+
+            }
+           
+            Console.WriteLine("--------------------------------------------------------------------------------DoWork Ends\n");
+            //Console.ReadKey();
+        }
+
+        private void UpdatUi(IEnumerable<string> output)
+        {
+            foreach (var outputItem in output)
+                Console.WriteLine(outputItem);
 
             Console.WriteLine("#####Download complete in {0}ms!#####\n", DateTime.Now.Subtract(startTime).TotalMilliseconds);
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
         }
 
         private static void GetUserInput()
@@ -64,15 +90,14 @@ namespace LyricDownloadConsole
             Console.WriteLine("Press Y to use 'aysnc' keywork implementation");
             var input = Console.ReadKey().KeyChar;
             _useAsyncSongs = input == 'y';
-            _useAwaitInMainThread = input == 'q';
 
 
             Console.WriteLine("\nPlease select method of task execution:");
-            Console.WriteLine("w: block calling thread until tasks finish");
-            Console.WriteLine("a: await completion of tasks");
-            Console.WriteLine("c: schedule continuation to handle results of tasks");
+            Console.WriteLine("r: block calling thread until the task result is available");
+            Console.WriteLine("a: await the task");
+            Console.WriteLine("c: schedule continuation to handle results of task");
             input = Console.ReadKey().KeyChar;
-            _taskWait = input == 'w';
+            _blockOnResult = input == 'r';
             _awaitCompletion = input == 'a';
             _useContinuation = input == 'c';
 

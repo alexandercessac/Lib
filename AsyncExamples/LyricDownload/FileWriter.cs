@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography.X509Certificates;
+﻿using System.IO;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace LyricDownload
@@ -8,7 +9,6 @@ namespace LyricDownload
         string RootDir { get; }
 
         Task<string> WriteFile(string fileContents, string fileName);
-        Task<string> WriteFile(ISong song);
     }
 
     public class FileWriter : IFileWriter
@@ -19,56 +19,23 @@ namespace LyricDownload
 
         public Task<string> WriteFile(string fileContents, string fileName)
         {
-            //Return task that will write file contents to RootDir/filename
-            return HelperTasks.Write(fileContents, RootDir, fileName);
-        }
-
-        public Task<string> WriteFile(ISong song)
-        {
-
-            return new TaskFactory<string>().StartNew(() =>
+            return Task.Run(() =>
             {
-                Task.Delay(25000).Wait();
+                Directory.CreateDirectory(RootDir);
 
-                //Get task that will write the result of GetLyrics to a file with the name name as song.Name
-                var writeFileTask = WriteFile(song.GetLyrics().Result, song.Name);
+                var fullPath = string.Format("{0}/{1}.html", RootDir, fileName);
 
-                //??
-                ////Wait for writeFileTask to complete
-                //writeFileTask.Wait();
-
-                //Return the result of writeFileTask
-                return writeFileTask.Result;
+                using (var fs = new FileStream(fullPath, FileMode.Create))
+                using (var sr = new StreamWriter(fs))
+                {
+                    //must wait on async task to prevent closing
+                    //stream before sr is finished writting
+                    sr.WriteAsync(fileContents).Wait();
+                }
+                return fullPath;
             });
         }
-    }
 
-    public class ContinuationFileWriter : IFileWriter
-    {
-        public string RootDir { get; private set; }
-
-        public ContinuationFileWriter(string rootDir) { RootDir = rootDir.Replace('\\', '/').TrimEnd('/'); }
-
-        public Task<string> WriteFile(string fileContents, string fileName)
-        {
-            //Return task that will write file contents to RootDir/filename
-            return HelperTasks.AsyncWrite(fileContents, RootDir, fileName);
-        }
-
-        public Task<string> WriteFile(ISong song)
-        {
-            return song.GetLyrics().ContinueWith(downloadedLyrics => 
-                //when GetLyrics has completed, continue with downloadedLyrics as the completed task {donwloadedLyrics = song.GetLyrics}
-                    WriteFile(downloadedLyrics.Result, song.Name)
-                    //When WriteFile has completed, continue with its result
-                    .ContinueWith(x =>
-                    {
-                        Task.Delay(5000).Wait();
-                        return x.Result;
-                    }, TaskContinuationOptions.ExecuteSynchronously)
-                    //result of continuation (task that returns the result of WriteFile)
-                    .Result, TaskContinuationOptions.ExecuteSynchronously);
-        }
     }
 
     public class AsyncFileWriter : IFileWriter
@@ -79,15 +46,16 @@ namespace LyricDownload
 
         public async Task<string> WriteFile(string fileContents, string fileName)
         {
-            //await the completion of AsyncWrite task and return its result
-            return await HelperTasks.AsyncWrite(fileContents, RootDir, fileName);
+            Directory.CreateDirectory(RootDir);
+
+            var fullPath = string.Format("{0}/{1}.html", RootDir, fileName);
+
+            using (var fs = new FileStream(fullPath, FileMode.Create))
+            using (var sr = new StreamWriter(fs))
+                await sr.WriteAsync(fileContents);
+            return fullPath;
+
         }
 
-        public async Task<string> WriteFile(ISong song)
-        {
-            var contents = await song.GetLyrics();
-
-            return await WriteFile(contents, song.Name);
-        }
     }
 }

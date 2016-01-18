@@ -10,14 +10,14 @@ namespace LyricDownload
         /// <summary>
         /// Using TaskFactory.StartNew()
         /// </summary>
-        /// <param name="fileContents"></param>
-        /// <param name="dir"></param>
-        /// <param name="filename"></param>
-        /// <returns></returns>
+        /// <param name="fileContents">string to be written to the file</param>
+        /// <param name="dir">target directory</param>
+        /// <param name="filename">name of .html file to write</param>
+        /// <returns>full name of created file</returns>
         public static Task<string> Write(string fileContents, string dir, string filename)
         {
             //Create task to return
-            return new TaskFactory<string>().StartNew(() =>
+            return Task.Run()(() =>
             {
                 Directory.CreateDirectory(dir);
 
@@ -26,12 +26,11 @@ namespace LyricDownload
                 using (var fs = new FileStream(fullPath, FileMode.Create))
                 using (var sr = new StreamWriter(fs))
                 {
-                    var writeTask = sr.WriteAsync(fileContents);
-                    
-                    //Pretend this takes awhile
-                    Task.WaitAll(writeTask, Task.Delay(25000));
+                    //must wait on async task to prevent closing
+                    //stream before sr is finished writting
+                    sr.WriteAsync(fileContents).Wait();
                 }
-                Console.WriteLine(Thread.CurrentThread.Name + "--" + fullPath );
+                //Console.WriteLine(Thread.CurrentThread.ManagedThreadId + "--" + fullPath);
                 return fullPath;
             });
 
@@ -40,10 +39,10 @@ namespace LyricDownload
         /// <summary>
         /// Using async keyword
         /// </summary>
-        /// <param name="fileContents"></param>
-        /// <param name="dir"></param>
-        /// <param name="filename"></param>
-        /// <returns></returns>
+        /// <param name="fileContents">string to be written to the file</param>
+        /// <param name="dir">target directory</param>
+        /// <param name="filename">name of .html file to write</param>
+        /// <returns>full name of created file</returns>
         public static async Task<string> AsyncWrite(string fileContents, string dir, string filename)
         {
             Directory.CreateDirectory(dir);
@@ -53,9 +52,13 @@ namespace LyricDownload
             using (var fs = new FileStream(fullPath, FileMode.Create))
             using (var sr = new StreamWriter(fs))
                 await sr.WriteAsync(fileContents);
-
-            await Task.Delay(25000);
             return fullPath;
+        }
+
+        public static string SignThread(string stringToSign)
+        {
+            return string.Format("{0}--[{1}]", stringToSign, Thread.CurrentThread.ManagedThreadId);
+
         }
     }
 }
