@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LyricDownload
@@ -19,6 +20,8 @@ namespace LyricDownload
 
         public Task<string> WriteFile(string fileContents, string fileName)
         {
+            var tId = Thread.CurrentThread.ManagedThreadId;
+
             return Task.Run(() =>
             {
                 Directory.CreateDirectory(RootDir);
@@ -46,6 +49,8 @@ namespace LyricDownload
 
         public async Task<string> WriteFile(string fileContents, string fileName)
         {
+            var tId = Thread.CurrentThread.ManagedThreadId;
+
             Directory.CreateDirectory(RootDir);
 
             var fullPath = string.Format("{0}/{1}.html", RootDir, fileName);

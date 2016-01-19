@@ -3,3 +3,8 @@ C:\Code\Lib\AsyncExamples\AsyncExample\bin\Debug\AsyncExample.pdb
 C:\Code\Lib\AsyncExamples\AsyncExample\obj\Debug\AsyncExample.dll
 C:\Code\Lib\AsyncExamples\AsyncExample\obj\Debug\AsyncExample.pdb
 C:\Code\Lib\AsyncExamples\AsyncExample\obj\Debug\AsyncExample.csprojResolveAssemblyReference.cache
+C:\Code\mycode\Lib\AsyncExamples\AsyncExample\bin\Debug\AsyncExample.dll
+C:\Code\mycode\Lib\AsyncExamples\AsyncExample\bin\Debug\AsyncExample.pdb
+C:\Code\mycode\Lib\AsyncExamples\AsyncExample\obj\Debug\AsyncExample.csprojResolveAssemblyReference.cache
+C:\Code\mycode\Lib\AsyncExamples\AsyncExample\obj\Debug\AsyncExample.dll
+C:\Code\mycode\Lib\AsyncExamples\AsyncExample\obj\Debug\AsyncExample.pdb

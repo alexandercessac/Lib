@@ -9,3 +9,8 @@ C:\Code\Lib\AsyncExamples\AsyncExamples\obj\Debug\AsyncExamples.pdb
 C:\Code\mycode\Lib\AsyncExamples\AsyncExamples\bin\Debug\AsyncExamples.exe.config
 C:\Code\mycode\Lib\AsyncExamples\AsyncExamples\obj\Debug\AsyncExamples.exe
 C:\Code\mycode\Lib\AsyncExamples\AsyncExamples\obj\Debug\AsyncExamples.pdb
+C:\Code\mycode\Lib\AsyncExamples\AsyncExamples\bin\Debug\AsyncExamples.exe
+C:\Code\mycode\Lib\AsyncExamples\AsyncExamples\bin\Debug\AsyncExamples.pdb
+C:\Code\mycode\Lib\AsyncExamples\AsyncExamples\bin\Debug\AsyncExample.dll
+C:\Code\mycode\Lib\AsyncExamples\AsyncExamples\bin\Debug\AsyncExample.pdb
+C:\Code\mycode\Lib\AsyncExamples\AsyncExamples\obj\Debug\AsyncExampleRunner.csprojResolveAssemblyReference.cache

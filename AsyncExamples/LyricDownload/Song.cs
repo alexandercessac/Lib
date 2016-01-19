@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Messaging;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LyricDownload
@@ -39,18 +41,31 @@ namespace LyricDownload
             Url = string.Format("{0}/{1}-lyrics", rootUrl.Trim('/'), name);
         }
 
+        /// <summary>
+        /// Get data in this.Url and use <paramref name="fileWriter"/> to save to disk
+        /// </summary>
+        /// <param name="fileWriter"></param>
+        /// <returns>Task that completes when file is written to disk</returns>
         public Task<string> Download(IFileWriter fileWriter)
         {
-            var contentsTask = new HttpClient().GetStringAsync(Url);
+            var tId = Thread.CurrentThread.ManagedThreadId;
 
-            contentsTask.Wait();
+            try
+            {
+                var contentsTask = new HttpClient().GetStringAsync(Url);
 
-            return fileWriter.WriteFile(contentsTask.Result, Name);
-        } 
+                //Block current thread until contentsTask is complete
+                contentsTask.Wait();
 
-        public Task<string> GetLyricsAsync()
-        {
-            return new HttpClient().GetStringAsync(Url);
+                //Return task that will write the contents to disk
+                return fileWriter.WriteFile(contentsTask.Result, Name);
+            }
+            catch
+            {
+                //Return a sucessfully completed Task<string> with the below result
+                return Task.FromResult(string.Format("Failed to download: {0}", Url));
+            }
+
         }
 
     }
@@ -68,14 +83,21 @@ namespace LyricDownload
 
         public async Task<string> Download(IFileWriter fileWriter)
         {
+            //peep thread Id
+            var tId = Thread.CurrentThread.ManagedThreadId;
+           
+            //suspend execution until this task is complete
             var contents = await new HttpClient().GetStringAsync(Url);
-            return await fileWriter.WriteFile(contents, Name);
+
+            //suspend execution until this task is complete
+            var writeFileTask = fileWriter.WriteFile(contents, Name);
+
+            var returnVal = await writeFileTask;
+
+            //return the value returned from WriteFile
+            return returnVal;
         }
 
-        public async Task<string> GetLyricsAsync()
-        {
-            return await new HttpClient().GetStringAsync(Url);
-        }
     }
 
 }

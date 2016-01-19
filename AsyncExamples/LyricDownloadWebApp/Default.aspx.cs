@@ -18,9 +18,14 @@ namespace LyricDownloadWebApp
 
         private IMusic _music;
 
-        private IFileWriter myWriter
+        private Music.EmplementaionType myWriterType
         {
-            get { return getFileWriter(DownloadDir); }
+            get { return cbxUseAsyncFileWriter.Checked ? Music.EmplementaionType.Async : Music.EmplementaionType.Sync; }
+        }
+
+        private Music.EmplementaionType mySongType
+        {
+            get { return cbxUseAsyncSongs.Checked ? Music.EmplementaionType.Async : Music.EmplementaionType.Sync; }
         }
 
         private void Page_Load(object sender, EventArgs e)
@@ -28,6 +33,9 @@ namespace LyricDownloadWebApp
             //Populate UI on initial load
             if (!Page.IsPostBack)
                 PopulateCheckBoxes();
+
+            //Clear output field
+            litOutput.Text = "";
         }
 
         /// <summary>
@@ -56,34 +64,41 @@ namespace LyricDownloadWebApp
                     .ToList();
         }
 
-        protected void btnSubmit_Click(object sender, EventArgs e)
+        private void PrepareDownload()
         {
+            //Instantiate IFileWritter to handle writting downloaded data to file system
+            var myWriter = Music.GetFileWriter(myWriterType, DownloadDir);
+
             //Instantiate new Music object to handle downloads
             _music = new Music(myWriter);
-
-            //Clear output field
-            litOutput.Text = "";
 
             //Add each song selected by the user to _music.Songs
             GetSelectedSongs()
                 .ForEach(selectedSong =>
-                    _music.Songs.Add(new Song(RapGeniusUrl, selectedSong)));
+                    _music.Songs.Add(Music.GetSong(mySongType, RapGeniusUrl, selectedSong)));
+        }
+
+        protected void btnSubmit_Click(object sender, EventArgs e)
+        {
+            PrepareDownload();
 
             //array to contain results of the download
             var downloadResult = new string[_music.Songs.Count];
 
+            //var to see on which thread we are running
+            var tId = Thread.CurrentThread.ManagedThreadId;
+
             //Determine method to use for downloading lyrics
-            if (cbxAsync.Checked)
+            if (cbxUseAsyncMethod.Checked)
             {
-                var threadId = Thread.CurrentThread.ManagedThreadId;
-
+                //Return task that yields control to the calling method
+                //when awaiting subsequent async methods
                 var asyncTask = _music.AwaitAllSongLyricsAsync();
-
-                var runningOnTheSameThread = (Thread.CurrentThread.ManagedThreadId == threadId);
 
                 //Block current thread until result of task 
                 //returned by AwaitAllSongLyricsAsync is available
                 downloadResult = asyncTask.Result;
+
             }
             else
             {
@@ -95,20 +110,13 @@ namespace LyricDownloadWebApp
             UpdateUi(downloadResult);
         }
 
-        //private async Task<string[]> awaitAsyncOperation()
-        //{
-            
-        //}
 
-    private void UpdateUi(IEnumerable<string> results)
+        private void UpdateUi(IEnumerable<string> results)
         {
             results.ForEach(x => litOutput.Text = string.Format("{0}<br/>{1}", litOutput.Text, x));
         }
 
-        private IFileWriter getFileWriter(string args)
-        {
-            return new FileWriter(args);
-        }
+
 
 
 

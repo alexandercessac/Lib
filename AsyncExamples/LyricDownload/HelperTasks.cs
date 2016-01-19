@@ -8,7 +8,7 @@ namespace LyricDownload
     public static class HelperTasks
     {
         /// <summary>
-        /// Using TaskFactory.StartNew()
+        /// Using Task.Run()
         /// </summary>
         /// <param name="fileContents">string to be written to the file</param>
         /// <param name="dir">target directory</param>
@@ -17,7 +17,7 @@ namespace LyricDownload
         public static Task<string> Write(string fileContents, string dir, string filename)
         {
             //Create task to return
-            return Task.Run()(() =>
+            return Task.Run(() =>
             {
                 Directory.CreateDirectory(dir);
 

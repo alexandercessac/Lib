@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Net.Mail;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,12 +18,10 @@ namespace LyricDownload
 
         public IFileWriter Writer { get; private set; }
 
-        public enum DownloadMethod
+        public enum EmplementaionType
         {
             Sync,
-            WhenAllTask,
-            AsyncTask
-
+            Async
         }
 
         public static readonly List<string> DefaultPlayList = new List<string>
@@ -41,8 +37,32 @@ namespace LyricDownload
             Songs = new List<ISong>();
         }
 
+        public static IFileWriter GetFileWriter(EmplementaionType myType, string args)
+        {
+            switch (myType)
+            {
+                case EmplementaionType.Async:
+                    return new AsyncFileWriter(args);
+                default:
+                    return new FileWriter(args);
+            }
+        }
+
+        public static ISong GetSong(EmplementaionType myType, string rootUrl, string name)
+        {
+            switch (myType)
+            {
+                case EmplementaionType.Async:
+                    return new AsyncSong(rootUrl, name);
+                default:
+                    return new Song(rootUrl, name);
+            }
+        }
+
         private Task<string>[] GetWork()
         {
+            var tId = Thread.CurrentThread.ManagedThreadId;
+            
             var work = new Task<string>[Songs.Count];
 
             //Setting download task for each song to download
@@ -57,6 +77,9 @@ namespace LyricDownload
 
         public string[] GetAllSongLyrics()
         {
+            var tId = Thread.CurrentThread.ManagedThreadId;
+            var tmp = SynchronizationContext.Current;
+
             //Create array of tasks representing lyric downloads
             var work = GetWork();
 
@@ -69,6 +92,9 @@ namespace LyricDownload
 
         public Task<string[]> GetAllSongLyricsTask()
         {
+            var tId = Thread.CurrentThread.ManagedThreadId;
+            var tmp = SynchronizationContext.Current;
+
             //Create array of tasks representing lyric downloads
             var work = GetWork();
 
@@ -78,15 +104,19 @@ namespace LyricDownload
 
         public async Task<string[]> AwaitAllSongLyricsAsync()
         {
+            var tId = Thread.CurrentThread.ManagedThreadId;
+            var tmp = SynchronizationContext.Current;
+
             //Get task[] that will process the tasks to be done
             var work = GetWork();
 
+            //Task that will complete when all tasks in work complete
             var completeAllTasks = Task.WhenAll(work);
 
-            //Await completion of all tasks
+            //Await completion of completeAllTasks
             var results = await completeAllTasks.ConfigureAwait(false);
 
-            //All songs have started downloading; return task that will complete will all songs are donwloaded/written
+            //All work is complete. Return results
             return results;
         }
 

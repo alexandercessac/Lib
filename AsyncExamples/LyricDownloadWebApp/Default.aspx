@@ -2,11 +2,15 @@
 
 <asp:Content ID="BodyContent" ContentPlaceHolderID="MainContent" runat="server">
     <br/>
-    <asp:CheckBox runat="server" Text="Use await/async" ID="cbxAsync"/><br/>
-    <asp:CheckBox runat="server" Text="Use await in FileWriter" ID="cbxAsyncFileWriter"/>
+    <asp:CheckBox runat="server" Text="Use async method to manage donwload tasks" ID="cbxUseAsyncMethod"/><br/>
+    <asp:CheckBox runat="server" Text="Use async method to download songs" ID="cbxUseAsyncSongs"/><br/>
+    <asp:CheckBox runat="server" Text="Use async FileWriter" ID="cbxUseAsyncFileWriter"/>
+    
+    
+    
     <br/><br/>
     <div>
-        &nbsp;&nbsp;&nbsp;&nbsp;<b>Drake</b><br/>
+        
         <asp:CheckBoxList ID="cbxSongs" runat="server">
         </asp:CheckBoxList>
         <hr/>

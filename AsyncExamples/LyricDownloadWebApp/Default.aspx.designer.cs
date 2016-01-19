@@ -13,22 +13,31 @@ namespace LyricDownloadWebApp {
     public partial class Default {
         
         /// <summary>
-        /// cbxAsync control.
+        /// cbxUseAsyncMethod control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.CheckBox cbxAsync;
+        protected global::System.Web.UI.WebControls.CheckBox cbxUseAsyncMethod;
         
         /// <summary>
-        /// cbxAsyncFileWriter control.
+        /// cbxUseAsyncSongs control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.CheckBox cbxAsyncFileWriter;
+        protected global::System.Web.UI.WebControls.CheckBox cbxUseAsyncSongs;
+        
+        /// <summary>
+        /// cbxUseAsyncFileWriter control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.CheckBox cbxUseAsyncFileWriter;
         
         /// <summary>
         /// cbxSongs control.

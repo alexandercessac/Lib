@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using LyricDownload;
 
@@ -10,72 +12,69 @@ namespace LyricDownloadConsole
     {
         private static bool _useAsyncSongs;
 
-        private static bool _blockOnResult;
         private static bool _awaitCompletion;
-        private static bool _useContinuation;
+        private static bool _waitOnTask;
+
 
         private DateTime startTime;
 
-        public void DoWork()
+        private const string RapGeniusUrl = "http://genius.com/";
+        private const string DownloadDir = "C:/tmpMusic/";
+
+        public async void DoWork()
         {
-            const string rootDir = "C:/TmpMusic/";
 
 
+            var music = new Music(new FileWriter(DownloadDir));
 
-            var music = new Music(new ContinuationFileWriter(rootDir));
+            var allSongs = Music.DefaultPlayList.Take(2).ToList();
 
-            var allSongs = Music.DefaultPlayList;
-
-            //Populate songs to download
-            GetSongs(allSongs).ForEach(x => music.Songs.Add(x));
-
-            //Songs populated and ready to download. 
             //Get user input to determine download method
             GetUserInput();
+
+            //determine song download method based on user input
+            var songType = _useAsyncSongs ? Music.EmplementaionType.Async : Music.EmplementaionType.Sync;
+
+
+            //Populate songs to download
+            allSongs.ForEach(x => music.Songs.Add(Music.GetSong(songType, RapGeniusUrl, x)));
 
             //Set start time to track processing duration
             startTime = DateTime.Now;
 
-            //Collect all tasks to be done
+            //var to see on which thread we are running
+            var tId = Thread.CurrentThread.ManagedThreadId;
 
+            //result of work
+            var result = new string[music.Songs.Count];
 
-
-            //Show why it is bad to use await on the
-            //main thread of a console application
-            if (_blockOnResult)
+            if (_awaitCompletion)
             {
-                var downloadTask = _awaitCompletion ? music.AwaitAllSongLyricsAsync() : music.GetAllSongLyricsTask();
+                var tmp = await music.AwaitAllSongLyricsAsync();
 
-                var result = downloadTask.Result;
-
-                UpdatUi(result);
-
-            } 
-            else
-            {
-
-                var downloadTask = music.GetAllSongLyricsTask();
-
-                if (_useContinuation)
-                {
-                    downloadTask.ContinueWith(t => 
-                        UpdatUi(t.Result));
-                }
-                else
-                {
-                    var result = downloadTask.Result;
-
-                    UpdatUi(result);
-
-                }
-
-
-
+                result = tmp;
             }
-           
+            else if (_waitOnTask)
+            {
+                //create task that returns the result of GetAllSongLyricsTask executed in a separate thread
+                var work = music.GetAllSongLyricsTask();
+
+                //get result or block current thread until result is available
+                result = work.Result;
+            }
+            else
+            {//Run Sync implementation
+                result = music.GetAllSongLyrics();
+            }
+
+            //Loop through results and write to console
+            UpdatUi(result);
+
+
             Console.WriteLine("--------------------------------------------------------------------------------DoWork Ends\n");
             //Console.ReadKey();
         }
+
 
         private void UpdatUi(IEnumerable<string> output)
         {
@@ -87,78 +86,21 @@ namespace LyricDownloadConsole
 
         private static void GetUserInput()
         {
-            Console.WriteLine("Press Y to use 'aysnc' keywork implementation");
+            Console.WriteLine("Press Y to use 'async' method for individual song download");
             var input = Console.ReadKey().KeyChar;
             _useAsyncSongs = input == 'y';
 
 
             Console.WriteLine("\nPlease select method of task execution:");
-            Console.WriteLine("r: block calling thread until the task result is available");
-            Console.WriteLine("a: await the task");
-            Console.WriteLine("c: schedule continuation to handle results of task");
+            Console.WriteLine("t: use task implementation");
+            Console.WriteLine("a: use 'async' task implementation");
             input = Console.ReadKey().KeyChar;
-            _blockOnResult = input == 'r';
             _awaitCompletion = input == 'a';
-            _useContinuation = input == 'c';
+            _waitOnTask = input == 't';
 
             Console.WriteLine("\nDownloading...");
         }
 
-        private static void WaitWriteResults(IEnumerable<string> work)
-        {
-
-            //Create a task that will complete when all subtasks have finished
-
-            //Wait for task to complete indicating all subtasks are finished
-
-            //write each track to the console
-            foreach (var workItem in work)
-                Console.WriteLine(workItem);
-        }
-
-        private static async void AwaitWriteResults(Task<string[]> work)
-        {
-            //returns a list of list of string
-            var result = await work;
-
-            //-----------NOTE: This code will not execute-------------------\\
-            // this is not true
-            //--------------------------------------------------------------\\
-
-            //Write each track to console
-            result.ToList().ForEach(Console.WriteLine);
-
-        }
-
-        #region Static Methods to Populate Artists with songs
-
-        private static List<ISong> GetSongs(List<string> artistAndSong)
-        {
-
-            var songsToDownload = new List<ISong>();
-
-            artistAndSong.ForEach(x => songsToDownload.Add(GetISong("http://genius.com/", x)));
-
-
-            return songsToDownload;
-        }
-
-        #endregion
-
-        #region Determine whether to use async implementation of song or not based on _useAsyncSongs
-
-        private static ISong GetISong(string parentUrl, string songName)
-        {
-            return _useAsyncSongs ? GetAsyncSong(parentUrl, songName) : GetSong(parentUrl, songName);
-        }
-
-        private static ISong GetSong(string rootUrl, string songName)
-        { return new Song(rootUrl, songName); }
-
-        private static ISong GetAsyncSong(string rootUrl, string songName)
-        { return new AsyncSong(rootUrl, songName); }
-
-        #endregion
 
     }
 }
