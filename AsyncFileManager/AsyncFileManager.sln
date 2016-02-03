@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.40629.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncFileManager", "AsyncFileManager\AsyncFileManager.csproj", "{8EBA5915-5CA3-4421-B44E-B37F679D4A6F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ioHelper", "..\ioHelper\ioHelper\ioHelper.csproj", "{04D760BA-716B-4FDB-A7ED-85CC1A2CFB66}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncFileManagerTest", "AsyncFileManagerTest\AsyncFileManagerTest.csproj", "{0B29FAF2-8D24-4D16-9D2F-7BC824993C04}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8EBA5915-5CA3-4421-B44E-B37F679D4A6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EBA5915-5CA3-4421-B44E-B37F679D4A6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EBA5915-5CA3-4421-B44E-B37F679D4A6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EBA5915-5CA3-4421-B44E-B37F679D4A6F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04D760BA-716B-4FDB-A7ED-85CC1A2CFB66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04D760BA-716B-4FDB-A7ED-85CC1A2CFB66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04D760BA-716B-4FDB-A7ED-85CC1A2CFB66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04D760BA-716B-4FDB-A7ED-85CC1A2CFB66}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B29FAF2-8D24-4D16-9D2F-7BC824993C04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B29FAF2-8D24-4D16-9D2F-7BC824993C04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B29FAF2-8D24-4D16-9D2F-7BC824993C04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B29FAF2-8D24-4D16-9D2F-7BC824993C04}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
