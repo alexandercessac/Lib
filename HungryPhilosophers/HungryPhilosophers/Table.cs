@@ -21,9 +21,14 @@ namespace HungryPhilosophers
 
             //Maybe?
             Dish = dish;
-            Dish.CanGetFood = FoodAvailable;
+            Dish.NoFoodLeft += FoodEaten;
             FoodAvailable.Set();
 
+        }
+
+        public void WhenNoFoodLleft()
+        {
+            FoodAvailable.Reset();
         }
 
         public void SetTable(int numEaters)
@@ -36,13 +41,13 @@ namespace HungryPhilosophers
 
             Party.Philosophers = new Philosopher[numEaters];
 
-            for (var i = 0; i < Party.Length -1; i++)
+            for (var i = 0; i < Party.Length - 1; i++)
             {
                 Party.Philosophers[i].EatFromTable += EaterGetsFood;
                 Party.Philosophers[i].Satisfaction = 0;
             }
 
-            
+
         }
 
         public void SeatEaters()
@@ -74,20 +79,26 @@ namespace HungryPhilosophers
 
         public void EaterGetsFood(Philosopher eater, TakeBitEventArgs e)
         {
-            
-            FoodAvailable.WaitOne();
 
+            FoodAvailable.WaitOne();//What if no food is delivered?
             
 
-            eater.HungerLevel --;
-            Dish.Bites --;
+            //TODO: fire eat even that handles hunger/dishBites decrement?
+            eater.HungerLevel--;
+            Dish.Bites--;
 
 
 
         }
 
+        public void FoodEaten()
+        {
+            FoodAvailable.Reset();
+            //Todo: alert the waiter?
 
-        
+        }
+
+
     }
 
     internal class PhilosopherParty
@@ -112,7 +123,7 @@ namespace HungryPhilosophers
 
         public void EatFoodUntillFull()
         {
-            Eat(new TakeBitEventArgs {});
+            Eat(new TakeBitEventArgs { });
         }
 
         public delegate void EatHandler(Philosopher foodItem, TakeBitEventArgs e);
@@ -130,7 +141,7 @@ namespace HungryPhilosophers
 
         protected virtual void OnEatFood(Philosopher eater, TakeBitEventArgs e)
         {
-            
+
         }
     }
 
@@ -141,9 +152,10 @@ namespace HungryPhilosophers
 
     public class FoodItem
     {
+        //Should fire event when no bites are left
         public int Bites { get; set; }
         public int SatisfactionAmount { get; private set; }
-        public ManualResetEvent CanGetFood { get; set; }
+
 
         public delegate void TakeBiteHandler(Philosopher eater, TakeBitEventArgs e);
 
@@ -151,13 +163,21 @@ namespace HungryPhilosophers
 
         public void TakeBite()
         {
-            Bites --;
+
 
             if (Bites == 0)
             {
-                CanGetFood.Reset();
+                NoFoodLeft?.Invoke();
+            }
+            else
+            {
+                Bites--;
             }
         }
+
+        public delegate void NoRemainingBites();
+
+        public NoRemainingBites NoFoodLeft;
 
         protected virtual void OnTakeBiteEvent(Philosopher eater, TakeBitEventArgs e)
         {
