@@ -26,7 +26,7 @@ namespace HungryPhilosophers
 
         }
 
-        public void WhenNoFoodLleft()
+        public void WhenNoFoodLeft()
         {
             FoodAvailable.Reset();
         }
