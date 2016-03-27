@@ -81,11 +81,12 @@ namespace HungryPhilosophers
         {
 
             FoodAvailable.WaitOne();//What if no food is delivered?
-            
 
-            //TODO: fire eat even that handles hunger/dishBites decrement?
-            eater.HungerLevel--;
-            Dish.Bites--;
+            if (Dish.TakeBite())
+            {
+                Party.Philosophers[eater.Id].HungerLevel--;
+            }
+            
 
 
 
@@ -161,18 +162,20 @@ namespace HungryPhilosophers
 
         public event TakeBiteHandler TakeBiteEvent;
 
-        public void TakeBite()
+        public bool TakeBite()
         {
 
 
             if (Bites == 0)
             {
                 NoFoodLeft?.Invoke();
+                return false;
             }
             else
             {
                 Bites--;
             }
+            return true;
         }
 
         public delegate void NoRemainingBites();
