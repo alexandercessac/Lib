@@ -43,7 +43,7 @@ namespace HungryPhilosophers
 
             for (var i = 0; i < Party.Length - 1; i++)
             {
-                Party.Philosophers[i].EatFromTable += EaterGetsFood;
+                Party.Philosophers[i].EatFromTable += RightHandedEaterGetsFood;
                 Party.Philosophers[i].Satisfaction = 0;
             }
 
@@ -77,20 +77,48 @@ namespace HungryPhilosophers
             return eaterId == Party.Length - 1 ? 0 : eaterId + 1;
         }
 
-        public void EaterGetsFood(Philosopher eater, TakeBitEventArgs e)
+        public void RightHandedEaterGetsFood(Philosopher eater, TakeBitEventArgs e)
         {
 
             FoodAvailable.WaitOne();//What if no food is delivered?
+            eater.RightChopstick.WaitOne();
+            eater.LeftChopstick.WaitOne();
+
 
             if (Dish.TakeBite())
             {
                 Party.Philosophers[eater.Id].HungerLevel--;
             }
-            
+
+            FoodAvailable.Set();
+
+            eater.RightChopstick.Set();
+            eater.LeftChopstick.Set();
 
 
 
         }
+
+        public void LeftHandedEaterGetsFood(Philosopher eater, TakeBitEventArgs e)
+        {
+
+            FoodAvailable.WaitOne();//What if no food is delivered?
+            eater.LeftChopstick.WaitOne();
+            eater.RightChopstick.WaitOne();
+
+
+            if (Dish.TakeBite())
+            {
+                Party.Philosophers[eater.Id].HungerLevel--;
+            }
+
+            FoodAvailable.Set();
+            
+            eater.LeftChopstick.Set();
+            eater.RightChopstick.Set();
+
+        }
+
 
         public void FoodEaten()
         {
@@ -133,11 +161,9 @@ namespace HungryPhilosophers
 
         public void Eat(TakeBitEventArgs e)
         {
-            LeftChopstick.WaitOne();
-            RightChopstick.WaitOne();
+            
             EatFromTable?.Invoke(this, e);
-            LeftChopstick.Set();
-            RightChopstick.Set();
+            
         }
 
         protected virtual void OnEatFood(Philosopher eater, TakeBitEventArgs e)
