@@ -1,20 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace HungryPhilosophers
 {
-    class Table
+    public class Table
     {
         private AutoResetEvent[] Chopsticks;
 
-        private ManualResetEvent FoodAvailable;
+        public bool FoodAvailable;
 
         FoodItem Dish;
-        PhilosopherParty Party;
+        PhilosopherParty Party = new PhilosopherParty();
+
+        public object Locker = new object();
+
+        public delegate Task FoodArives();
+
+        public FoodArives OnFoodArives;
 
         public void ServeTable(FoodItem dish)
         {
@@ -22,13 +25,9 @@ namespace HungryPhilosophers
             //Maybe?
             Dish = dish;
             Dish.NoFoodLeft += FoodEaten;
-            FoodAvailable.Set();
+            FoodAvailable = true;
+            OnFoodArives?.Invoke();
 
-        }
-
-        public void WhenNoFoodLeft()
-        {
-            FoodAvailable.Reset();
         }
 
         public void SetTable(int numEaters)
@@ -36,35 +35,48 @@ namespace HungryPhilosophers
             var numChopsticks = numEaters > 1 ? numEaters : 2;
 
             Chopsticks = new AutoResetEvent[numChopsticks];
-            for (var i = 0; i < Chopsticks.Length - 1; i++)
-                Chopsticks[i] = new AutoResetEvent(false);
+            for (var i = 0; i < Chopsticks.Length; i++)
+                Chopsticks[i] = new AutoResetEvent(true);
 
-            Party.Philosophers = new Philosopher[numEaters];
-
-            for (var i = 0; i < Party.Length - 1; i++)
-            {
-                Party.Philosophers[i].EatFromTable += RightHandedEaterGetsFood;
-                Party.Philosophers[i].Satisfaction = 0;
-            }
-
+            Party = new PhilosopherParty { Philosophers = new Philosopher[numEaters] };
 
         }
 
         public void SeatEaters()
         {
-            for (var i = 0; i < Party.Length - 1; i++)
+            var tmp = new Random();
+
+
+            for (var i = 0; i < Party.Length; i++)
             {
-                SeatEater(i);
+                var tmpBit = (tmp.Next(0, (Party.Length * 2) - 1) & 1);
+                var whatever = tmpBit == 0;
+                SeatEater(i, whatever);
+
             }
         }
 
-        private void SeatEater(int id)
+        private void SeatEater(int id, bool whatever)
         {
             Party.Philosophers[id] = new Philosopher(id)
             {
                 LeftChopstick = Chopsticks[GetLeftChopstick(id)],
-                RightChopstick = Chopsticks[GetRightChopstick(id)]
+                RightChopstick = Chopsticks[GetRightChopstick(id)],
+                Satisfaction = 0,
+                HungerLevel = 25
             };
+
+            if (whatever)
+            {
+                Party.Philosophers[id].EatFromTable += RightHandedEaterGetsFood;
+            }
+            else
+            {
+                Party.Philosophers[id].EatFromTable += LeftHandedEaterGetsFood;
+            }
+            OnFoodArives += Party.Philosophers[id].EatFoodUntillFull;
+            Party.Philosophers[id].myTable = this;
+
         }
 
         private int GetLeftChopstick(int eaterId)
@@ -80,18 +92,10 @@ namespace HungryPhilosophers
         public void RightHandedEaterGetsFood(Philosopher eater, TakeBitEventArgs e)
         {
 
-            FoodAvailable.WaitOne();//What if no food is delivered?
             eater.RightChopstick.WaitOne();
             eater.LeftChopstick.WaitOne();
 
-
-            if (Dish.TakeBite())
-            {
-                Party.Philosophers[eater.Id].HungerLevel--;
-            }
-
-            FoodAvailable.Set();
-
+            Eat(eater);
             eater.RightChopstick.Set();
             eater.LeftChopstick.Set();
 
@@ -99,21 +103,31 @@ namespace HungryPhilosophers
 
         }
 
+        private void Eat(Philosopher eater)
+        {
+            lock (Locker)
+            {
+                //What if no food is delivered?
+                if (Dish.TakeBite())
+                {
+                    
+                    eater.HungerLevel--;
+
+                    Console.WriteLine($"Eater # {eater.Id} takes a bite. Hunger level: {eater.HungerLevel} --- Remainging food: {Dish.Bites}");
+                    eater.IsEating = false;
+                }
+            }
+            Monitor.Pulse(Locker);
+
+        }
+
         public void LeftHandedEaterGetsFood(Philosopher eater, TakeBitEventArgs e)
         {
-
-            FoodAvailable.WaitOne();//What if no food is delivered?
             eater.LeftChopstick.WaitOne();
             eater.RightChopstick.WaitOne();
 
+            Eat(eater);
 
-            if (Dish.TakeBite())
-            {
-                Party.Philosophers[eater.Id].HungerLevel--;
-            }
-
-            FoodAvailable.Set();
-            
             eater.LeftChopstick.Set();
             eater.RightChopstick.Set();
 
@@ -122,8 +136,9 @@ namespace HungryPhilosophers
 
         public void FoodEaten()
         {
-            FoodAvailable.Reset();
+            FoodAvailable = false;
             //Todo: alert the waiter?
+            Console.WriteLine("table is out of food.");
 
         }
 
@@ -138,21 +153,41 @@ namespace HungryPhilosophers
 
     public class Philosopher
     {
-        public bool Isfull { get; private set; }
+        public bool Isfull => HungerLevel == 0;
+        public bool IsEating { get; set; }
         internal AutoResetEvent RightChopstick { get; set; }
         internal AutoResetEvent LeftChopstick { get; set; }
         public int Satisfaction { get; set; }
         public int HungerLevel { get; set; }
+        internal int Id { get; }
+        public Table myTable { get; set; }
 
         public Philosopher(int id)
         {
             Id = id;
         }
-        internal int Id { get; private set; }
 
-        public void EatFoodUntillFull()
+
+        public Task EatFoodUntillFull()
         {
-            Eat(new TakeBitEventArgs { });
+            return Task.Run(() =>
+             {
+
+
+                 while (!Isfull)
+                 {
+                     lock (myTable.Locker)
+                     {
+
+                         while (!myTable.FoodAvailable || IsEating)
+                             Monitor.Wait(myTable.Locker);
+                         Eat(new TakeBitEventArgs { });
+
+                     }
+                     
+                 }
+                 Console.WriteLine($"Eater# {Id} is full");
+             });
         }
 
         public delegate void EatHandler(Philosopher foodItem, TakeBitEventArgs e);
@@ -161,15 +196,10 @@ namespace HungryPhilosophers
 
         public void Eat(TakeBitEventArgs e)
         {
-            
+            IsEating = true;
             EatFromTable?.Invoke(this, e);
-            
         }
 
-        protected virtual void OnEatFood(Philosopher eater, TakeBitEventArgs e)
-        {
-
-        }
     }
 
     public class TakeBitEventArgs : EventArgs
