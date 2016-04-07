@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using BattleShipGame.Interfaces;
 using static BattleShipGame.Events.TileHitEvents;
@@ -9,11 +10,11 @@ namespace BattleShipGame.Ships
     public class Ship
     {
         public uint Size { get; }
-        public Dictionary<Coordinate, Tile> Hull { get; set; }
-        public Coordinate[] Location { get; }
+        public Dictionary<Point, Tile> Hull { get; set; }
+        public Point[] Location { get; }
         public SinkEvent OnSinking;
 
-        public Ship(Coordinate[] location, uint size)
+        public Ship(Point[] location, uint size)
         {
             Size = size;
             if (location.Length != Size)
@@ -21,7 +22,7 @@ namespace BattleShipGame.Ships
                 throw new Exception($"Ship needs {Size} coordinates. Recieved {location.Length}");
             }
 
-            Hull = new Dictionary<Coordinate, Tile>();
+            Hull = new Dictionary<Point, Tile>();
 
             foreach (var coord in location)
             {
@@ -31,7 +32,7 @@ namespace BattleShipGame.Ships
             Location = location;
         }
 
-        public void OnHit(Coordinate location)
+        public void OnHit(Point location)
         {
             Hull[location].Status = TileStatus.Hit;
 
