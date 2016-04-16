@@ -12,11 +12,14 @@ namespace BattleShipGame.Ships
         public uint Size { get; }
         public Dictionary<Point, Tile> Hull { get; set; }
         public Point[] Location { get; }
+        public bool IsSunk;
         public SinkEvent OnSinking;
+        public readonly string Name;
 
-        public Ship(Point[] location, uint size)
+        public Ship(Point[] location, uint size, string name)
         {
             Size = size;
+            Name = name;
             if (location.Length != Size)
             {
                 throw new Exception($"Ship needs {Size} coordinates. Recieved {location.Length}");
@@ -42,6 +45,7 @@ namespace BattleShipGame.Ships
             {
                 tile.Status = TileStatus.Sunk;
             }
+            IsSunk = true;
             OnSinking?.Invoke();
         }
 

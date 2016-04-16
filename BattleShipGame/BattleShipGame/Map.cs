@@ -8,7 +8,7 @@ namespace BattleShipGame
     public class Map
     {
         public Dictionary<Point, Tile> Tiles;
-        public List<Ship> Fleet;//TODO: make into its own object
+        public Fleet Fleet;//TODO: make into its own object
 
         //PRIVATE MEMBERS
         public uint BoardWidth { get; }
@@ -40,12 +40,21 @@ namespace BattleShipGame
             var target = Tiles[coord];
 
             target?.OnHit?.Invoke(coord);
-            return (target?.Status) == TileStatus.Hit;
+
+            if (target == null) return false;
+            switch (target.Status)
+            {
+                case TileStatus.Hit:
+                case TileStatus.Sunk:
+                    return true;
+            }
+            return false;
         }
 
         public bool AreaClear(Dictionary<Point, Tile>.KeyCollection area)
         {
-            return area.All(coord => Tiles.Single(c => c.Key.X == coord.X && c.Key.Y == coord.Y).Value.Status == TileStatus.OpenOcean);
+            return area.All((point) => Tiles[point].Status == TileStatus.OpenOcean);
+
         }
 
         public bool SetShip(Ship newShip)

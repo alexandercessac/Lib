@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using BattleShipGame;
 using BattleShipGame.Ships;
 
 namespace BattleShipConsole
 {
-    class Program
+    internal class Program
     {
         static void Main(string[] args)
         {
@@ -17,13 +13,18 @@ namespace BattleShipConsole
 
             var shipSize = 2;
 
-            var shipCoords = new Point[2]
+            var shipCoords = new[]
             {
                 new Point(0, 0),
                 new Point(0, 1)
             };
 
-            var ship = new Ship(shipCoords, (uint) shipSize);
+            Console.WriteLine("Enter name of first Ship");
+            var shipName = Console.ReadLine();
+
+            var ship = new Ship(shipCoords, (uint) shipSize, shipName);
+            
+            ship.OnSinking += () => Console.WriteLine($"{ship.Name} has been sunk!");
 
             map.SetShip(ship);
 
@@ -38,7 +39,7 @@ namespace BattleShipConsole
 
             Console.WriteLine($"{result}!");
 
-            Console.WriteLine("Press any key to fire again");
+            Console.WriteLine("Press any key to end");
             Console.ReadKey();
 
         }
