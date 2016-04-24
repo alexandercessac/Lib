@@ -9,16 +9,24 @@ namespace BattleShipGame.Ships
 {
     public class Ship
     {
-        public uint Size { get; }
+        public uint Size
+        {
+            get
+            {
+                var tmp = Hull?.Keys.Count;
+
+                return tmp == null ? 0 : uint.Parse(tmp.ToString());
+            } 
+        }
+
         public Dictionary<Coordinate, Tile> Hull { get; set; }
         public Coordinate[] Location { get; }
         public bool IsSunk;
         public SinkEvent OnSinking;
         public readonly string Name;
 
-        public Ship(Coordinate[] location, uint size, string name)
+        public Ship(Coordinate[] location, string name)
         {
-            Size = size;
             Name = name;
             if (location.Length != Size)
             {

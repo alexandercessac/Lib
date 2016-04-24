@@ -72,5 +72,10 @@ namespace BattleShipGame
 
             return true;
         }
+
+        public bool IsOpenOcean(Coordinate tile)
+        {
+            return  Tiles[tile].Status == TileStatus.OpenOcean;
+        }
     }
 }
