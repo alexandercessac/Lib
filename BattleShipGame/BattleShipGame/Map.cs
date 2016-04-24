@@ -7,7 +7,7 @@ namespace BattleShipGame
 {
     public class Map
     {
-        public Dictionary<Point, Tile> Tiles;
+        public Dictionary<Coordinate, Tile> Tiles;
         public Fleet Fleet;//TODO: make into its own object
 
         //PRIVATE MEMBERS
@@ -24,17 +24,17 @@ namespace BattleShipGame
 
         public void ResetMap()
         {
-            Tiles = new Dictionary<Point, Tile>();
+            Tiles = new Dictionary<Coordinate, Tile>();
             for (var x = 0; x < BoardWidth; x++)
             {
                 for (var y = 0; y < BoardHeight; y++)
                 {
-                    Tiles.Add(new Point(x, y), new Tile());
+                    Tiles.Add(new Coordinate(x, y), new Tile());
                 }
             }
         }
 
-        public bool Fire(Point coord)
+        public bool Fire(Coordinate coord)
         {
         
             var target = Tiles[coord];
@@ -51,9 +51,9 @@ namespace BattleShipGame
             return false;
         }
 
-        public bool AreaClear(Dictionary<Point, Tile>.KeyCollection area)
+        public bool AreaClear(Dictionary<Coordinate, Tile>.KeyCollection area)
         {
-            return area.All((point) => Tiles[point].Status == TileStatus.OpenOcean);
+            return area.All((Coordinate) => Tiles[Coordinate].Status == TileStatus.OpenOcean);
 
         }
 

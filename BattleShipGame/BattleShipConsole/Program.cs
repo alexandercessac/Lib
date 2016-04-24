@@ -15,8 +15,8 @@ namespace BattleShipConsole
 
             var shipCoords = new[]
             {
-                new Point(0, 0),
-                new Point(0, 1)
+                new Coordinate(0, 0),
+                new Coordinate(0, 1)
             };
 
             Console.WriteLine("Enter name of first Ship");
@@ -28,14 +28,14 @@ namespace BattleShipConsole
 
             map.SetShip(ship);
 
-            var result = map.Fire(new Point(0, 0)) ? "Hit" : "Miss";
+            var result = map.Fire(new Coordinate(0, 0)) ? "Hit" : "Miss";
 
             Console.WriteLine($"{result}!");
 
             Console.WriteLine("Press any key to fire again");
             Console.ReadKey();
 
-            result = map.Fire(new Point(0, 1)) ? "Hit" : "Miss";
+            result = map.Fire(new Coordinate(0, 1)) ? "Hit" : "Miss";
 
             Console.WriteLine($"{result}!");
 

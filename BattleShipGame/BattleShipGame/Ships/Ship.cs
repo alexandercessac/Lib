@@ -10,13 +10,13 @@ namespace BattleShipGame.Ships
     public class Ship
     {
         public uint Size { get; }
-        public Dictionary<Point, Tile> Hull { get; set; }
-        public Point[] Location { get; }
+        public Dictionary<Coordinate, Tile> Hull { get; set; }
+        public Coordinate[] Location { get; }
         public bool IsSunk;
         public SinkEvent OnSinking;
         public readonly string Name;
 
-        public Ship(Point[] location, uint size, string name)
+        public Ship(Coordinate[] location, uint size, string name)
         {
             Size = size;
             Name = name;
@@ -25,7 +25,7 @@ namespace BattleShipGame.Ships
                 throw new Exception($"Ship needs {Size} coordinates. Recieved {location.Length}");
             }
 
-            Hull = new Dictionary<Point, Tile>();
+            Hull = new Dictionary<Coordinate, Tile>();
 
             foreach (var coord in location)
             {
@@ -35,7 +35,7 @@ namespace BattleShipGame.Ships
             Location = location;
         }
 
-        public void OnHit(Point location)
+        public void OnHit(Coordinate location)
         {
             Hull[location].Status = TileStatus.Hit;
 
