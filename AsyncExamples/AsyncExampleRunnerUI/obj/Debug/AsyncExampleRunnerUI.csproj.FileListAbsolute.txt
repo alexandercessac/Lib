@@ -6,3 +6,11 @@ C:\Code\Lib\AsyncExamples\AsyncExampleRunnerUI\obj\Debug\AsyncExampleRunnerUI.Pr
 C:\Code\Lib\AsyncExamples\AsyncExampleRunnerUI\obj\Debug\AsyncExampleRunnerUI.csproj.GenerateResource.Cache
 C:\Code\Lib\AsyncExamples\AsyncExampleRunnerUI\obj\Debug\AsyncExampleRunnerUI.exe
 C:\Code\Lib\AsyncExamples\AsyncExampleRunnerUI\obj\Debug\AsyncExampleRunnerUI.pdb
+C:\code\myCode\Lib\AsyncExamples\AsyncExampleRunnerUI\bin\Debug\AsyncExampleRunnerUI.exe.config
+C:\code\myCode\Lib\AsyncExamples\AsyncExampleRunnerUI\bin\Debug\AsyncExampleRunnerUI.exe
+C:\code\myCode\Lib\AsyncExamples\AsyncExampleRunnerUI\bin\Debug\AsyncExampleRunnerUI.pdb
+C:\code\myCode\Lib\AsyncExamples\AsyncExampleRunnerUI\obj\Debug\AsyncExampleRunnerUI.csprojResolveAssemblyReference.cache
+C:\code\myCode\Lib\AsyncExamples\AsyncExampleRunnerUI\obj\Debug\AsyncExampleRunnerUI.Properties.Resources.resources
+C:\code\myCode\Lib\AsyncExamples\AsyncExampleRunnerUI\obj\Debug\AsyncExampleRunnerUI.csproj.GenerateResource.Cache
+C:\code\myCode\Lib\AsyncExamples\AsyncExampleRunnerUI\obj\Debug\AsyncExampleRunnerUI.exe
+C:\code\myCode\Lib\AsyncExamples\AsyncExampleRunnerUI\obj\Debug\AsyncExampleRunnerUI.pdb

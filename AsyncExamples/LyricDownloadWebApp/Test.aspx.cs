@@ -7,6 +7,8 @@ namespace LyricDownloadWebApp
 {
     public partial class Test : Page
     {
+        //private const string ResourcePath = "https://msdn.microsoft.com/en-us/library/system.net.http.httpclient(v=vs.118).aspx";
+
         protected void Page_Load(object sender, EventArgs e)
         {
 
@@ -14,24 +16,17 @@ namespace LyricDownloadWebApp
 
         protected void btnTest_OnClick(object sender, EventArgs e)
         {
-            //var tmp = Task.Run(()=> GetContent("https://msdn.microsoft.com/en-us/library/system.net.http.httpclient(v=vs.118).aspx"));
-
-            var tmp = GetContent("https://msdn.microsoft.com/en-us/library/system.net.http.httpclient(v=vs.118).aspx");
-
-            //tmp.Wait();
-
-            lblResult.Text = tmp.Result;
+            var contentTask = GetContent();
+            lblResult.Text = contentTask.Result;
         }
-
-
-        protected async Task<string> GetContent(string Uri)
+        protected async Task<string> GetContent()
         {
+            var uri = new Uri("http://genius.com/Drake-hotline-bling-lyrics");
+
             using (var client = new HttpClient())
             {
-                var getResult = client.GetAsync(Uri).Result;
-
-                var content = getResult.Content.ReadAsStringAsync().Result;
-
+                var getResult = await client.GetAsync(uri);
+                var content = await getResult.Content.ReadAsStringAsync();
                 return content;
             }
         }

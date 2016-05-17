@@ -10,7 +10,6 @@ C:\Code\mycode\Lib\AsyncExamples\LyricDownloadWebApp\bin\Microsoft.AspNet.Friend
 C:\Code\mycode\Lib\AsyncExamples\LyricDownloadWebApp\bin\Microsoft.AspNet.Identity.Core.dll
 C:\Code\mycode\Lib\AsyncExamples\LyricDownloadWebApp\bin\Microsoft.AspNet.Identity.EntityFramework.dll
 C:\Code\mycode\Lib\AsyncExamples\LyricDownloadWebApp\bin\Microsoft.AspNet.Identity.Owin.dll
-C:\Code\mycode\Lib\AsyncExamples\LyricDownloadWebApp\bin\Microsoft.AspNet.Web.Optimization.WebForms.dll
 C:\Code\mycode\Lib\AsyncExamples\LyricDownloadWebApp\bin\Microsoft.Owin.dll
 C:\Code\mycode\Lib\AsyncExamples\LyricDownloadWebApp\bin\Microsoft.Owin.Host.SystemWeb.dll
 C:\Code\mycode\Lib\AsyncExamples\LyricDownloadWebApp\bin\Microsoft.Owin.Security.Cookies.dll
