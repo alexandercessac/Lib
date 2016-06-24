@@ -52,6 +52,10 @@
       <Project>{8ab53eef-e866-4270-93d0-5ad913162750}</Project>
       <Name>AsyncExample</Name>
     </ProjectReference>
+    <ProjectReference Include="..\QueueManager\QueueManager.csproj">
+      <Project>{09ba224c-3947-435a-9c86-69c27d8464e7}</Project>
+      <Name>QueueManager</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

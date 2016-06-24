@@ -34,3 +34,11 @@ C:\code\myCode\Lib\AsyncExamples\LyricDownloadWebApp.Tests\bin\Debug\LyricDownlo
 C:\code\myCode\Lib\AsyncExamples\LyricDownloadWebApp.Tests\bin\Debug\System.Web.Optimization.dll
 C:\code\myCode\Lib\AsyncExamples\LyricDownloadWebApp.Tests\bin\Debug\Microsoft.Web.Infrastructure.dll
 C:\code\myCode\Lib\AsyncExamples\LyricDownloadWebApp.Tests\bin\Debug\System.Web.Optimization.xml
+C:\code\myCode\Lib\AsyncExamples\LyricDownloadWebApp.Tests\bin\Debug\System.Web.Http.dll
+C:\code\myCode\Lib\AsyncExamples\LyricDownloadWebApp.Tests\bin\Debug\System.Net.Http.Formatting.dll
+C:\code\myCode\Lib\AsyncExamples\LyricDownloadWebApp.Tests\bin\Debug\Newtonsoft.Json.dll
+C:\code\myCode\Lib\AsyncExamples\LyricDownloadWebApp.Tests\bin\Debug\System.Web.Http.xml
+C:\code\myCode\Lib\AsyncExamples\LyricDownloadWebApp.Tests\bin\Debug\System.Net.Http.Formatting.xml
+C:\code\myCode\Lib\AsyncExamples\LyricDownloadWebApp.Tests\bin\Debug\Newtonsoft.Json.xml
+C:\code\myCode\Lib\AsyncExamples\LyricDownloadWebApp.Tests\bin\Debug\System.Web.Http.WebHost.dll
+C:\code\myCode\Lib\AsyncExamples\LyricDownloadWebApp.Tests\bin\Debug\System.Web.Http.WebHost.xml
