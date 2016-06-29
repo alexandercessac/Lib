@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using QueueManager;
 
@@ -8,7 +9,7 @@ namespace AsyncExamples
 {
     class AsyncRunner
     {
-        private static readonly char[] ValidMenuChoices = { 'q', 'Q', '0', '1' };
+        private static readonly char[] ValidMenuChoices = { 'q', 'Q', '0', '1', '2' };
 
         static void Main()
         {
@@ -19,12 +20,9 @@ namespace AsyncExamples
 
                 switch (x)
                 {
-                    case '0':
-                        DoDeadLockExample();
-                        break;
-                    case '1':
-                        DoMonitorQueueExample();
-                        break;
+                    case '0': DoDeadLockExample(); break;
+                    case '1': DoMonitorQueueExample(); break;
+                    case '2': DoMonitorQueueListenerExample(); break;
                     default:
                         quit = true;
                         break;
@@ -33,16 +31,56 @@ namespace AsyncExamples
             }
         }
 
+        private static void DoMonitorQueueListenerExample()
+        {
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine($"[{DateTime.Now}]------------Queueing using Monitor Listeners----------\n");
+
+            MsgQ.AddQueueListener(GetVowelsFromString);
+
+            do
+            {
+                Console.WriteLine("Enter text [Q to quit]:\n");
+                var input = Console.ReadLine();
+                if (input == "Q") break;
+                MsgQ.AddToQueue(new List<string> {input});
+            } while (true);
+
+            MsgQ.StopQueueListeners();//cleanup
+
+        }
+
+        private static readonly Action<object> GetVowelsFromString = msg =>
+        {
+            try
+            {
+                var tmp = (string) msg;
+
+                var cap = new Regex("a|e|i|o|u", RegexOptions.IgnoreCase).Match(tmp).Captures;
+
+                var ret = new string[cap.Count];
+
+                cap.CopyTo(ret, 0);
+
+                Console.WriteLine($"string {tmp} contains the following vowels:\n {string.Join(", ", ret).Trim().Trim(',')}\n\n");
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Could not cast message to a string: {e.Message}");
+            }
+
+            //write all vowels
+        };
+
         private static void DoMonitorQueueExample()
         {
             Console.WriteLine();
             Console.WriteLine();
             Console.WriteLine($"[{DateTime.Now}] Queueing using Monitor");
 
-            var q = new QueueManager.Queue();
-
-
-
+            
             var itemsToQ = new List<int>();
 
             Console.WriteLine("How many numbers to add to queue? ");
@@ -58,14 +96,14 @@ namespace AsyncExamples
             var startTime = DateTime.Now;
             var work = new[]
             {
-                q.AddToQueue(itemsToQ),
+                MsgQ.AddToQueue(itemsToQ),
                 //q.AddToQueue(itemsToQ),
                 //q.AddToQueue(itemsToQ),
-                WriteToConsoleFromQ(q),
-                WriteToConsoleFromQ(q),
-                WriteToConsoleFromQ(q),
-                WriteToConsoleFromQ(q),
-                WriteToConsoleFromQ(q)
+                WriteToConsoleFromQ(),
+                WriteToConsoleFromQ(),
+                WriteToConsoleFromQ(),
+                WriteToConsoleFromQ(),
+                WriteToConsoleFromQ()
             };
             //added a bunch to the queue, lets pull it out
 
@@ -79,14 +117,14 @@ namespace AsyncExamples
 
         }
 
-        private static async Task WriteToConsoleFromQ(Queue q)
+        private static async Task WriteToConsoleFromQ()
         {
             var dQ = new List<int>(); string val;
 
             do
             {
                 dQ.Clear(); val = ""; 
-                dQ = await q.GetFromQueue<int>(25);
+                dQ = await MsgQ.GetFromQueue<int>(25);
 
                 if (dQ.Count <= 0) break;
 
@@ -128,7 +166,8 @@ namespace AsyncExamples
                 Console.WriteLine("             ------------------------------Main Menu--------------------------------------");
                 Console.WriteLine("             |                Which example would you like to run?                       |");
                 Console.WriteLine("             |                [0] : Deadlock Example                                     |");
-                Console.WriteLine("             |                [1] : MonitorExample                                       |");
+                Console.WriteLine("             |                [1] : Monitor Example                                      |");
+                Console.WriteLine("             |                [2] : Monitor Listener Example                             |");
                 Console.WriteLine("             |                Please enter [1-9] or [q] to quit                          |");
                 Console.WriteLine("             -----------------------------------------------------------------------------");
                 userInput = Console.ReadKey().KeyChar;
