@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using QueueManager;
 
 namespace AsyncExamples
 {
@@ -11,7 +12,8 @@ namespace AsyncExamples
 
         static void Main()
         {
-            while (true)
+            var quit = false;
+            while (!quit)
             {
                 var x = MainMenu();
 
@@ -24,37 +26,81 @@ namespace AsyncExamples
                         DoMonitorQueueExample();
                         break;
                     default:
+                        quit = true;
                         break;
+
                 }
             }
         }
 
         private static void DoMonitorQueueExample()
         {
-            var Q = new QueueManager.Queue();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine($"[{DateTime.Now}] Queueing using Monitor");
+
+            var q = new QueueManager.Queue();
 
 
-            var itemsToQ = new List<int>() { 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 };
 
+            var itemsToQ = new List<int>();
+
+            Console.WriteLine("How many numbers to add to queue? ");
+            var readLine = Console.ReadLine();
+            var numCount = long.Parse(readLine ?? "0");
+            //add specified count of random single digit numbers
+            var rnd = new Random();
+            for (var i = 0; i < numCount; i++)
+                itemsToQ.Add(rnd.Next(0, 9));
+
+            Console.WriteLine($"\nQueueing {itemsToQ.Count} items");
+
+            var startTime = DateTime.Now;
             var work = new[]
             {
-                Q.AddToQueue(itemsToQ),
-                Q.AddToQueue(itemsToQ),
-                Q.AddToQueue(itemsToQ)
+                q.AddToQueue(itemsToQ),
+                //q.AddToQueue(itemsToQ),
+                //q.AddToQueue(itemsToQ),
+                WriteToConsoleFromQ(q),
+                WriteToConsoleFromQ(q),
+                WriteToConsoleFromQ(q),
+                WriteToConsoleFromQ(q),
+                WriteToConsoleFromQ(q)
             };
             //added a bunch to the queue, lets pull it out
 
-            List<int> dQ;
+
+
+            Task.WaitAll(work);
+
+            Console.WriteLine($"Execution time took: [{DateTime.Now.Subtract(startTime).TotalSeconds} seconds] to enqueue and dequeue {numCount} items.");
+            Console.WriteLine("--------------------------------------------------------------------------");
+            Console.WriteLine();
+
+        }
+
+        private static async Task WriteToConsoleFromQ(Queue q)
+        {
+            var dQ = new List<int>(); string val;
+
             do
             {
-                dQ = Q.GetFromQueue<int>().Result;
-                if (dQ.Count > 0)
-                    dQ.ForEach(Console.WriteLine);
-                else
-                    break;
+                dQ.Clear(); val = ""; 
+                dQ = await q.GetFromQueue<int>(25);
+
+                if (dQ.Count <= 0) break;
+
+                dQ.ForEach(x => val += $"{x}, ");
+                Console.WriteLine(val.Trim().Trim(','));
+                
+
             } while (dQ.Count > 0);
 
-            Console.WriteLine("Done");
+            if (!string.IsNullOrEmpty(val))
+            {
+                Console.WriteLine(val.Trim().Trim(','));
+                Console.WriteLine();
+            }
 
         }
 
@@ -79,10 +125,12 @@ namespace AsyncExamples
 
             do
             {
-                Console.WriteLine("Which example would you like to run?");
-                Console.WriteLine("[0] : Deadlock Example");
-                Console.WriteLine("[1] : MonitorExample");
-                Console.WriteLine("Please enter [1-9] or [q] to quit\n");
+                Console.WriteLine("             ------------------------------Main Menu--------------------------------------");
+                Console.WriteLine("             |                Which example would you like to run?                       |");
+                Console.WriteLine("             |                [0] : Deadlock Example                                     |");
+                Console.WriteLine("             |                [1] : MonitorExample                                       |");
+                Console.WriteLine("             |                Please enter [1-9] or [q] to quit                          |");
+                Console.WriteLine("             -----------------------------------------------------------------------------");
                 userInput = Console.ReadKey().KeyChar;
 
             } while (!ValidMenuChoices.Contains(userInput));

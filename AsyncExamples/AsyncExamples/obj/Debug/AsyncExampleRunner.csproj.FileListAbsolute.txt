@@ -14,3 +14,5 @@ C:\Code\mycode\Lib\AsyncExamples\AsyncExamples\bin\Debug\AsyncExamples.pdb
 C:\Code\mycode\Lib\AsyncExamples\AsyncExamples\bin\Debug\AsyncExample.dll
 C:\Code\mycode\Lib\AsyncExamples\AsyncExamples\bin\Debug\AsyncExample.pdb
 C:\Code\mycode\Lib\AsyncExamples\AsyncExamples\obj\Debug\AsyncExampleRunner.csprojResolveAssemblyReference.cache
+C:\code\myCode\Lib\AsyncExamples\AsyncExamples\bin\Debug\QueueManager.dll
+C:\code\myCode\Lib\AsyncExamples\AsyncExamples\bin\Debug\QueueManager.pdb
