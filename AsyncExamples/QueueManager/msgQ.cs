@@ -7,22 +7,28 @@ namespace QueueManager
 {
     public static class MsgQ
     {
+        //const
         private const int MAX_LISTNER_COUNT = 5;
-
+        //lock objects
         private static readonly System.Collections.Queue Q = new System.Collections.Queue();
-
         private static readonly object ListenerLock = new object();
+        //local vars
         private static CancellationTokenSource _cts = new CancellationTokenSource();
         private static List<Task> _currentListeners = new List<Task>();
 
-        public static Task AddToQueue<T>(List<T> queueItems) => Task.Run(() => Enqueue(queueItems));
-        public static Task AddToQueue<T>(T queueItems) => Task.Run(() => Enqueue(queueItems));
+        //events
+        public delegate void ReportingAction(string msg);
+        public static event ReportingAction OnReport;
+
+        //Method expressions
+        public static Task AddToQueue<T>(List<T> queueItems) => Task.Run(() => EnqueueMany(queueItems));
+        public static Task AddToQueue<T>(T queueItem) => Task.Run(() => Enqueue(queueItem));
         public static Task<List<T>> GetFromQueue<T>(int count = 1) => Task.Run(() => Dequeue<T>(count));
 
         public static bool AddQueueListener(Action<object> msgAction)
         {
-            lock (_currentListeners)
-            {//obtain exclusive access of the CurrentListeners to prevent list from being cleared before we add a new one
+            lock (ListenerLock)
+            {//obtain exclusive access of Listeners to prevent list from being cleared before we add a new one
                 if (_currentListeners.Count == MAX_LISTNER_COUNT) return false;
                 _currentListeners.Add(Task.Run(() => CreateQueueListener(msgAction, _cts.Token)));
             }
@@ -31,7 +37,7 @@ namespace QueueManager
 
         //public static void StopQueueListeners(int timeout = -1) => StopQueueListenersAsync().Wait(timeout);
 
-        public static void StopQueueListeners()
+        public static void StopQueueListeners(int timeoutMs = -1)
         {
             lock (ListenerLock)
             {//obtain exclusive access of the CurrentListeners to prevent listeners from being added before we complete/clear the previous listeners
@@ -39,7 +45,7 @@ namespace QueueManager
 
                 lock (Q) Monitor.PulseAll(Q); //Pulse all Q listeners
 
-                Task.WhenAll(_currentListeners).Wait();
+                Task.WhenAll(_currentListeners).Wait(timeoutMs);
 
                 _cts = new CancellationTokenSource();
                 _currentListeners = new List<Task>();//remove all completed listeners
@@ -53,18 +59,18 @@ namespace QueueManager
             {
                 while (!ctx.IsCancellationRequested)
                 {
-                    if (Q.Count == 0)
-                        Monitor.Wait(Q);
+                    if (Q.Count == 0) Monitor.Wait(Q);
+
                     try
                     { msgAction(Q.Dequeue()); }
                     catch (InvalidOperationException)
-                    { Console.WriteLine($"[###Thread: {Thread.CurrentThread.ManagedThreadId}###] queue is empty"); }
+                    { OnReport?.Invoke($"[###Thread: {Thread.CurrentThread.ManagedThreadId}###] queue is empty"); }
 
                 }
             }
         }
 
-        private static void Enqueue<T>(IReadOnlyList<T> queueItems)
+        private static void EnqueueMany<T>(IReadOnlyList<T> queueItems)
         {
             var itemsQueued = 0;
 
@@ -103,7 +109,7 @@ namespace QueueManager
                 }
                 catch (InvalidOperationException)
                 {
-                    Console.WriteLine($"[###Thread: {Thread.CurrentThread.ManagedThreadId}###] queue is empty");
+                    OnReport?.Invoke($"[###Thread: {Thread.CurrentThread.ManagedThreadId}###] queue is empty");
                     count = 0;//don't try to get any more from empty queue
                 }
                 finally

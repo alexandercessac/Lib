@@ -37,25 +37,25 @@ namespace AsyncExamples
             Console.WriteLine();
             Console.WriteLine($"[{DateTime.Now}]------------Queueing using Monitor Listeners----------\n");
 
+            MsgQ.OnReport += Console.WriteLine;
             MsgQ.AddQueueListener(GetVowelsFromString);
 
             do
             {
-                Console.WriteLine("Enter text [Q to quit]:\n");
-                var input = Console.ReadLine();
+                var input = WriteLineWithResponse("Enter text [Q to quit]:\n");
                 if (input == "Q") break;
-                MsgQ.AddToQueue(new List<string> {input});
+                MsgQ.AddToQueue(new List<string> { input });
             } while (true);
 
             MsgQ.StopQueueListeners();//cleanup
-
+            MsgQ.OnReport -= Console.WriteLine;
         }
 
         private static readonly Action<object> GetVowelsFromString = msg =>
         {
             try
             {
-                var tmp = (string) msg;
+                var tmp = (string)msg;
 
                 var cap = new Regex("a|e|i|o|u", RegexOptions.IgnoreCase).Match(tmp).Captures;
 
@@ -80,7 +80,7 @@ namespace AsyncExamples
             Console.WriteLine();
             Console.WriteLine($"[{DateTime.Now}] Queueing using Monitor");
 
-            
+
             var itemsToQ = new List<int>();
 
             Console.WriteLine("How many numbers to add to queue? ");
@@ -119,18 +119,23 @@ namespace AsyncExamples
 
         private static async Task WriteToConsoleFromQ()
         {
+            //StringHelper.WriteListToConsole(async () =>
+            //{
+            // return await MsgQ.GetFromQueue<int>(25);
+            //});
+
             var dQ = new List<int>(); string val;
 
             do
             {
-                dQ.Clear(); val = ""; 
+                dQ.Clear(); val = "";
                 dQ = await MsgQ.GetFromQueue<int>(25);
 
                 if (dQ.Count <= 0) break;
 
                 dQ.ForEach(x => val += $"{x}, ");
                 Console.WriteLine(val.Trim().Trim(','));
-                
+
 
             } while (dQ.Count > 0);
 
@@ -157,6 +162,8 @@ namespace AsyncExamples
             Console.ReadKey();
         }
 
+        #region UI
+        
         private static char MainMenu()
         {
             char userInput;
@@ -177,5 +184,13 @@ namespace AsyncExamples
             return userInput;
 
         }
+
+        private static string WriteLineWithResponse(string msg)
+        {
+            Console.WriteLine(msg);
+            return Console.ReadLine();
+        }
+
+        #endregion
     }
 }
