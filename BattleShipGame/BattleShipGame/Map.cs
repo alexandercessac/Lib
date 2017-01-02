@@ -6,6 +6,8 @@ namespace BattleShipGame
 {
     public class Map
     {
+        public int TotalShips = 0;
+        public int ActiveShips = 0;
         public Dictionary<Coordinate, Tile> Tiles;
         public Fleet Fleet;//TODO: make into its own object
 
@@ -67,6 +69,7 @@ namespace BattleShipGame
             for (var i = 0; i < newShips.Length - 1; i++)
                 Set(newShips[i]);
 
+            
             return true;
         }
 
@@ -85,6 +88,8 @@ namespace BattleShipGame
         {
             foreach (var hullPiece in newShip.Hull)
                 Tiles[hullPiece.Key] = hullPiece.Value;
+            ActiveShips++;
+            TotalShips++;
         }
         
     }

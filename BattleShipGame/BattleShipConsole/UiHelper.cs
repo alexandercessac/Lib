@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using BattleShipGame;
 using System.Text.RegularExpressions;
 
@@ -12,11 +13,62 @@ namespace BattleShipConsole
 
         public static void Draw(this Map map) => map.Draw(false);
 
+        public static void Draw(Map myMap, Map oppenentMap, bool showLegend = false)
+        {
+            if (showLegend)
+                DrawLegend();
+            DrawHeader();
+
+            Console.ForegroundColor = Console.BackgroundColor;
+            Console.Write($"[0] ");
+            Console.ResetColor();
+
+            //X coord headers
+            for (var x = 0; x < myMap.BoardWidth; x++)
+                Console.Write($" [{x}] ");
+
+            Console.Write("  |  ");
+
+            Console.ForegroundColor = Console.BackgroundColor;
+            Console.Write($"[0] ");
+            Console.ResetColor();
+            for (var x = 0; x < oppenentMap.BoardWidth; x++)
+                Console.Write($" [{x}] ");
+
+            Console.WriteLine();
+            //end X coord headers
+
+
+            //What if maps are different heights?
+            for (var y = 0; y < myMap.BoardHeight; y++)
+            {
+                WriteFiller(myMap.BoardWidth);
+                Console.Write("  |  ");
+                WriteFiller(oppenentMap.BoardWidth);
+                Console.WriteLine();
+
+                //draw width of first map
+                Console.Write($"[{y}] ");
+                for (var x = 0; x < myMap.BoardWidth; x++)
+                    DrawTile(myMap.Tiles[new Coordinate(x, y)].Status);
+
+                //separator
+                Console.Write("  |  ");
+
+                //draw width of second map
+                Console.Write($"[{y}] ");
+                for (var x = 0; x < oppenentMap.BoardWidth; x++)
+                    DrawOpponentTile(oppenentMap.Tiles[new Coordinate(x, y)].Status);
+
+                Console.WriteLine();
+            }
+        }
+
         public static void Draw(this Map map, bool showLegend)
         {
             if (showLegend)
                 DrawLegend();
-            drawHeader();
+            DrawHeader();
 
             Console.ForegroundColor = Console.BackgroundColor;
             Console.Write($"[0] ");
@@ -29,7 +81,9 @@ namespace BattleShipConsole
 
             for (var y = 0; y < map.BoardHeight; y++)
             {
-                WriteFillerLine(map.BoardWidth);
+                WriteFiller(map.BoardWidth);
+
+                Console.WriteLine();
 
                 Console.Write($"[{y}] ");
                 for (var x = 0; x < map.BoardWidth; x++)
@@ -38,23 +92,30 @@ namespace BattleShipConsole
             }
         }
 
-        private static void WriteFillerLine(uint length)
+        private static void WriteFiller(uint length)
         {
             Console.ForegroundColor = Console.BackgroundColor;
             Console.Write($"[0]  ");
             Console.ResetColor();
-            for (var x = 0; x < length; x++)
-                Console.Write("-----");
+            var sb = new StringBuilder();
 
-            Console.CursorLeft--;
-            Console.CursorLeft--;
-            Console.ForegroundColor = Console.BackgroundColor;
-            Console.Write("  ");
-            Console.ResetColor();
-            Console.WriteLine();
+            for (var x = 0; x < length; x++)
+                sb.Append("-----");
+                //Console.Write("-----");
+
+            var line = sb.ToString();
+            Console.Write(line.Substring(0, line.Length - 2));
+
+            //Console.CursorLeft--;
+            //Console.CursorLeft--;
+            //Console.ForegroundColor = Console.BackgroundColor;
+            Console.Write(" ");
+            //Console.ResetColor();
+
+
         }
 
-        private static void drawHeader()
+        private static void DrawHeader()
         {
             Console.Write("     ");
             Console.ForegroundColor = ConsoleColor.Blue;
@@ -78,44 +139,93 @@ namespace BattleShipConsole
             Console.WriteLine($"    {nameof(TileStatus.Sunk)}");
         }
 
+        private static void DrawOpponentTile(TileStatus tileStatus)
+        {
+            Console.Write("|");
+            switch (tileStatus)
+            {
+                case TileStatus.OpenOcean:
+                case TileStatus.Ship://Conceal opponent's un hit ship as opean ocean
+                    DrawOpenOceanTile();
+                    break;
+                case TileStatus.Hit:
+                    DrawHitTile();
+                    break;
+                case TileStatus.Miss:
+                    DrawMissTile();
+                    break;
+                case TileStatus.Sunk:
+                    DrawSunkTile();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(tileStatus), tileStatus, null);
+            }
+            Console.Write("|");
+        }
+
         private static void DrawTile(TileStatus tileStatus)
         {
             Console.Write("|");
             switch (tileStatus)
             {
                 case TileStatus.OpenOcean:
-                    Console.BackgroundColor = ConsoleColor.Blue;
-                    Console.Write("   ");
-                    Console.ResetColor();
+                    DrawOpenOceanTile();
                     break;
                 case TileStatus.Ship:
-                    Console.BackgroundColor = ConsoleColor.Blue;
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.Write(" █ ");
-                    Console.ResetColor();
+                    DrawShipTile();
                     break;
                 case TileStatus.Hit:
-                    Console.BackgroundColor = ConsoleColor.Blue;
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.Write(" X ");
-                    Console.ResetColor();
+                    DrawHitTile();
                     break;
                 case TileStatus.Miss:
-                    Console.BackgroundColor = ConsoleColor.Blue;
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write(" O ");
-                    Console.ResetColor();
+                    DrawMissTile();
                     break;
                 case TileStatus.Sunk:
-                    Console.BackgroundColor = ConsoleColor.Blue;
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write(" X ");
-                    Console.ResetColor();
+                    DrawSunkTile();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(tileStatus), tileStatus, null);
             }
             Console.Write("|");
+        }
+
+        private static void DrawSunkTile()
+        {
+            Console.BackgroundColor = ConsoleColor.Blue;
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write(" X ");
+            Console.ResetColor();
+        }
+
+        private static void DrawMissTile()
+        {
+            Console.BackgroundColor = ConsoleColor.Blue;
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write(" O ");
+            Console.ResetColor();
+        }
+
+        private static void DrawHitTile()
+        {
+            Console.BackgroundColor = ConsoleColor.Blue;
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write(" X ");
+            Console.ResetColor();
+        }
+
+        private static void DrawOpenOceanTile()
+        {
+            Console.BackgroundColor = ConsoleColor.Blue;
+            Console.Write("   ");
+            Console.ResetColor();
+        }
+
+        private static void DrawShipTile()
+        {
+            Console.BackgroundColor = ConsoleColor.Blue;
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.Write(" █ ");
+            Console.ResetColor();
         }
 
         public static string GetInput(string msg, string regex)
@@ -125,7 +235,7 @@ namespace BattleShipConsole
 
             do
             {
-                Msg(msg);
+                Ask(msg);
 
                 rawInput = Console.ReadLine()?.Replace(Environment.NewLine, "").Trim() ?? string.Empty;
 
@@ -147,7 +257,7 @@ namespace BattleShipConsole
 
         private static void ConfirmQuit()
         {
-            Msg("Are you sure you want to quit? [y|n]");
+            Ask("Are you sure you want to quit? [y|n]");
             var rawInput = Console.ReadLine()?.Replace(Environment.NewLine, "").Trim() ?? string.Empty;
             if (rawInput == "y" || rawInput == "Y")
                 Environment.Exit(0);
@@ -169,12 +279,20 @@ namespace BattleShipConsole
             Console.WriteLine($"{msg}");
         }
 
-        public static void Msg(string msg)
+        public static void Ask(string msg)
         {
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write($"[{DateTime.Now}] ");
             Console.ResetColor();
             Console.Write($"{msg}: ");
+        }
+
+        public static void Msg(string msg)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write($"[{DateTime.Now}] ");
+            Console.ResetColor();
+            Console.WriteLine($"{msg}");
         }
     }
 }
