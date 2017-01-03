@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 using BattleShipGame;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace BattleShipConsole
@@ -19,27 +19,50 @@ namespace BattleShipConsole
                 DrawLegend();
             DrawHeader();
 
+
+
+            //Write Names line
+            Console.Write("     ");// Padding for Y index numbers & Leading space for formatting
+            Console.BackgroundColor = ConsoleColor.DarkGreen;
+            Console.ForegroundColor = ConsoleColor.Black;
+            WriteName(myMap);
+            Console.ResetColor();
+            Console.Write(" ");//Trailing space for formatting
+
+            Console.Write("  |  "); //Map Separator
+            
+            Console.Write("     ");// Padding for Y index numbers & Leading space for formatting
+            Console.BackgroundColor = ConsoleColor.DarkRed;
+            Console.ForegroundColor = ConsoleColor.Black;
+            WriteName(oppenentMap);
+            Console.ResetColor();
+            Console.Write(" ");//Trailing space for formatting
+
+            //end Write player names
+            Console.WriteLine();
+
+            
+
+
+            //X coord headers
             Console.ForegroundColor = Console.BackgroundColor;
             Console.Write($"[0] ");
             Console.ResetColor();
-
-            //X coord headers
-            for (var x = 0; x < myMap.BoardWidth; x++)
-                Console.Write($" [{x}] ");
+            for (var x = 0; x < myMap.BoardWidth; x++) Console.Write($" [{x}] ");
 
             Console.Write("  |  ");
 
             Console.ForegroundColor = Console.BackgroundColor;
             Console.Write($"[0] ");
             Console.ResetColor();
-            for (var x = 0; x < oppenentMap.BoardWidth; x++)
-                Console.Write($" [{x}] ");
+            for (var x = 0; x < oppenentMap.BoardWidth; x++) Console.Write($" [{x}] ");
 
             Console.WriteLine();
             //end X coord headers
 
 
             //What if maps are different heights?
+            //BUG: your map can only be as tall as my map
             for (var y = 0; y < myMap.BoardHeight; y++)
             {
                 WriteFiller(myMap.BoardWidth);
@@ -62,6 +85,27 @@ namespace BattleShipConsole
 
                 Console.WriteLine();
             }
+        }
+
+        private static void WriteName(Map myMap)
+        {
+            var sb = new StringBuilder();
+
+            var strActiveShips = $"Remaining Ships: {myMap.ActiveShips}";
+            //Write player names (5 characters for each tile - 2 so it looks nice ☺)
+            var totalLength = (myMap.BoardWidth * 5) - 2;
+            for (var x = 0; x < totalLength; x++)
+            {
+                if (x < myMap.Captain.Name.Length)
+                    sb.Append(myMap.Captain.Name[x]);
+                else if (totalLength - x <= strActiveShips.Length)
+                    sb.Append(strActiveShips[(int)(totalLength - x - strActiveShips.Length) * -1]);
+                else
+                    sb.Append(" ");
+                
+                
+            }
+            Console.Write(sb.ToString());
         }
 
         public static void Draw(this Map map, bool showLegend)
@@ -120,8 +164,9 @@ namespace BattleShipConsole
             Console.Write("     ");
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.BackgroundColor = ConsoleColor.Gray;
-            Console.WriteLine("############### BATTLE SHIP ###############");
+            Console.Write("##################################### BATTLE SHIP #####################################");
             Console.ResetColor();
+            Console.WriteLine();
         }
 
         public static void DrawLegend()
@@ -192,8 +237,12 @@ namespace BattleShipConsole
         private static void DrawSunkTile()
         {
             Console.BackgroundColor = ConsoleColor.Blue;
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write(" X ");
+            Console.Write(" ");
+            Console.ForegroundColor = ConsoleColor.Black;
+            Console.BackgroundColor = ConsoleColor.Red;
+            Console.Write("X");
+            Console.BackgroundColor = ConsoleColor.Blue;
+            Console.Write(" ");
             Console.ResetColor();
         }
 
@@ -208,7 +257,7 @@ namespace BattleShipConsole
         private static void DrawHitTile()
         {
             Console.BackgroundColor = ConsoleColor.Blue;
-            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.Write(" X ");
             Console.ResetColor();
         }

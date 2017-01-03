@@ -1,11 +1,13 @@
 ﻿using System.Linq;
 using BattleShipGame.Ships;
 using System.Collections.Generic;
+using BattleShipGame.Identity;
 
 namespace BattleShipGame
 {
     public class Map
     {
+        public readonly Player Captain;
         public int TotalShips = 0;
         public int ActiveShips = 0;
         public Dictionary<Coordinate, Tile> Tiles;
@@ -15,10 +17,11 @@ namespace BattleShipGame
         public uint BoardWidth { get; }
         public uint BoardHeight { get; }
 
-        public Map() : this(10, 10) { }
-        public Map(uint width, uint height)
+        public Map(Player captain) : this(captain, 10, 10) { }
+        public Map(Player captain, uint width, uint height)
         {
             BoardHeight = height;
+            Captain = captain;
             BoardWidth = width;
             ResetMap();
         }

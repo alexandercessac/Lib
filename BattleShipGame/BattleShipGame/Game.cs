@@ -1,8 +1,10 @@
-﻿namespace BattleShipGame
+﻿using BattleShipGame.Identity;
+
+namespace BattleShipGame
 {
     public class GameConfig
     {
-        public int Players;
+        public Player[] Players;
         public uint MapHeight;
         public uint MapWidth;
     }
@@ -13,10 +15,10 @@
 
         public Game(GameConfig config)
         {
-            Maps = new Map[config.Players];
+            Maps = new Map[config.Players.Length];
 
-            for (var i = 0; i < config.Players; i++)
-                Maps[i] = new Map(config.MapWidth, config.MapHeight);
+            for (var i = 0; i < config.Players.Length; i++)
+                Maps[i] = new Map(config.Players[i], config.MapWidth, config.MapHeight);
         }
 
     }

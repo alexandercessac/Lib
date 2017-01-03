@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using BattleShipGame;
+using BattleShipGame.Identity;
 using BattleShipGame.Ships;
 using static BattleShipConsole.UiHelper;
 
@@ -10,37 +11,42 @@ namespace BattleShipConsole
     {
         public static Map MyMap { get; private set; }
         public enum Direction { North, East, South, West }
-
-        public static int RemainingShips = 0;
-
+        
         private static void RunOnePlayerGame()
         {
+            Ask("Enter player1 name");
+
             //Init map
-            MyMap = new Map(10, 10);
+            MyMap = new Map(new Player {Name = Console.ReadLine()}, 10, 10);
             MyMap.Draw(showLegend: true);
 
             MyMap.SetShip(GetShip(MyMap));
-            RemainingShips++;
-
+            
             MyMap.SetShip(GetShip(MyMap));
-            RemainingShips++;
-
+            
             Console.Clear();
             MyMap.Draw();
 
-            while (RemainingShips != 0)
+            while (MyMap.ActiveShips != 0)
                 MyMap.Fire(GetCoordinate());
         }
 
         private static void Main(string[] args)
         {
             Console.Title = "BattleShip!";
+            
+            var player1Name = GetInput("Enter player name", ".+");
+            var shipCountPerPlayer = GetInput<uint>("Enter number of ships for this game", "10|[1-9]");
 
             var options = new GameConfig
             {
                 MapWidth = 10,
                 MapHeight = 10,
-                Players = 2 //User & CPU
+                Players = new[]
+                {
+                    new Player {Name = player1Name},
+                    new Player {Name = "CPU"} 
+                }
             };
 
             var gameState = new Game(options);
@@ -51,44 +57,53 @@ namespace BattleShipConsole
             //Init
             Draw(myMap, oppenentMap, true);
 
-
-            var newShip1 = GetShip(myMap);
-            myMap.SetShip(newShip1);
-            oppenentMap.SetShip(GetCpuShip(newShip1.Name, newShip1.Size, oppenentMap));
-
-            Console.Clear();
-            Draw(myMap, oppenentMap, true);
-
-            var newShip2 = GetShip(myMap);
-            myMap.SetShip(newShip2);
-            oppenentMap.SetShip(GetCpuShip(newShip2.Name, newShip2.Size, oppenentMap));
-
-            Console.Clear();
-            Draw(myMap, oppenentMap, true);
+            for (var i = 0; i < shipCountPerPlayer; i++)
+                SetPlayerAndCpuShip(myMap, oppenentMap);
 
             while (myMap.ActiveShips != 0 || oppenentMap.ActiveShips != 0)
             {
-
                 EventQueue.Enqueue(Console.Clear);
                 EventQueue.Enqueue(() => Draw(myMap, oppenentMap, true));
 
-
                 if (!oppenentMap.Fire(GetCoordinate()))
-                    EventQueue.Enqueue(() => Info("You miss"));
+                    EventQueue.Enqueue(() => Info($"{myMap.Captain.Name} miss"));
 
                 //Cpu fire
                 var availableShots = myMap.Tiles.Where(t => t.Value.Status == TileStatus.OpenOcean).ToArray();
                 var coordinate = availableShots[new Random().Next(0, availableShots.Length - 1)].Key;
 
                 if (!myMap.Fire(coordinate))
-                    EventQueue.Enqueue(() => Info("Opponent miss"));
-
+                    EventQueue.Enqueue(() => Info($"{oppenentMap.Captain.Name} miss"));
 
                 while (EventQueue.Count > 0)
                     EventQueue.Dequeue().Invoke();
             }
         }
 
+        private static void SetPlayerAndCpuShip(Map myMap, Map oppenentMap)
+        {
+            
+            var newShip1 = GetShip(myMap);
+            
+            //Ensure ship can be set at this location on the map
+            var shipSet = myMap.SetShip(newShip1);
+            while (!shipSet)
+            {
+                Error("Could not set ship at location");
+                newShip1 = GetShip(myMap);
+                shipSet = myMap.SetShip(newShip1);
+            }
+
+            //Set CPU ship with the same name and size
+            shipSet = oppenentMap.SetShip(GetCpuShip(newShip1.Name, newShip1.Size, oppenentMap));
+            //Ensure ship can be set at this location on the map
+            while (!shipSet)
+                shipSet = oppenentMap.SetShip(GetCpuShip(newShip1.Name, newShip1.Size, oppenentMap));
+
+            //draw updated map
+            Console.Clear();
+            Draw(myMap, oppenentMap, true);
+        }
 
 
         private static void Fire(this Map map, Coordinate coord)
@@ -122,7 +137,7 @@ namespace BattleShipConsole
             //TODO: other events?
             ship.OnSinking += () =>
             {
-                EventQueue.Enqueue(() => Msg($"Opponent's {ship.Name} has been sunk!"));
+                EventQueue.Enqueue(() => Msg($"{map.Captain.Name}'s {ship.Name} has been sunk!"));
 
                 if (map != null) map.ActiveShips--;
 
@@ -130,7 +145,7 @@ namespace BattleShipConsole
                     EventQueue.Enqueue(Win);
 
             };
-            ship.OnHit += location => EventQueue.Enqueue(() => Msg("You hit an opponent's ship!"));
+            ship.OnHit += location => EventQueue.Enqueue(() => Msg($"{map.Captain.Name}'s ship has be hit!"));
         }
 
         private static void SetShipEvents(Map map, Ship ship)
@@ -138,7 +153,7 @@ namespace BattleShipConsole
             //TODO: other events?
             ship.OnSinking += () =>
             {
-                EventQueue.Enqueue(() => Error($"Your {ship.Name} has been sunk!"));
+                EventQueue.Enqueue(() => Error($"{map.Captain.Name}'s {ship.Name} has been sunk!"));
 
                 if (map != null) map.ActiveShips--;
 
@@ -146,7 +161,7 @@ namespace BattleShipConsole
                     EventQueue.Enqueue(Lose);
 
             };
-            ship.OnHit += location => EventQueue.Enqueue(() => Error("Opponent hit a ship!"));
+            ship.OnHit += location => EventQueue.Enqueue(() => Error($"{map.Captain.Name}'s ship has be hit!"));
         }
 
         private static void Win()
