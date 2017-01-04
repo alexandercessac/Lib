@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using BattleShipGame;
 using BattleShipGame.Identity;
 using BattleShipGame.Ships;
@@ -28,6 +30,7 @@ namespace BattleShipConsole
                     break;
                 case 2:
                     Console.Clear();
+                    HostMultiplayer();
                     //TODO:
                     break;
                 case 3:
@@ -37,8 +40,59 @@ namespace BattleShipConsole
                     
             }
             
+        }
 
-            
+        private static void HostMultiplayer()
+        {
+
+            IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
+            IPAddress ipAddress = ipHostInfo.AddressList[0];
+            IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 1738);
+
+            //TODO:
+            //https://msdn.microsoft.com/en-us/library/system.net.httplistener(v=vs.110).aspx
+            //tcp calls are firewalled :( try the above HttpListener example?
+            var tmp = new HttpListener();
+            tmp.Prefixes.Add("http://localhost/BattleShip");
+
+            var server = new TcpListener(localEndPoint);
+
+            try
+            {
+                server.Start();
+                Info("Waiting for players...");
+
+                var pendingClient = server.AcceptTcpClientAsync();
+
+                var waitCount = 0;
+                while (!pendingClient.IsCompleted)
+                {
+                    Console.Clear();
+                    // doesnt work
+                    Info($"Waiting for players{Enumerable.Repeat(".", waitCount)}");
+                    waitCount++;
+
+                    if (waitCount != 10) continue;
+
+                    if (GetInput("No one is joining. Keep waiting?", "y|Y|n|N").ToUpper() == "Y")
+                        return;
+                    else
+                        waitCount = 0;
+                }
+
+                Msg("Connected!");
+
+
+                
+
+                
+
+            }
+            catch (Exception e)
+            {
+                
+            }
+            finally { server.Stop();}
         }
 
         private static void PlayerVsCpu()
