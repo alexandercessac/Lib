@@ -10,6 +10,7 @@ namespace BattleShipGame
         public readonly Player Captain;
         public int TotalShips = 0;
         public int ActiveShips = 0;
+        public bool HasActiveShips => ActiveShips > 0;
         public Dictionary<Coordinate, Tile> Tiles;
         public Fleet Fleet;//TODO: make into its own object
 
@@ -34,12 +35,12 @@ namespace BattleShipGame
                     Tiles.Add(new Coordinate(x, y), new Tile());
         }
 
-        public bool Fire(Coordinate coord)
+        public bool Fire(Player player, Coordinate coord)
         {
             //Attempt to raise event on specified tile
             var tile = Tiles[coord];
 
-            tile?.OnHit?.Invoke(coord);
+            tile?.OnHit?.Invoke(player, coord);
             
             //Check the resulting status of the specified tile
             switch (tile?.Status ?? default(TileStatus))

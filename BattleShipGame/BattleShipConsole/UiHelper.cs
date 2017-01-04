@@ -11,16 +11,21 @@ namespace BattleShipConsole
 
         public static Queue<Action> EventQueue = new Queue<Action>();
 
+        public static void DoEvents()
+        {
+            while (EventQueue.Count > 0)
+                EventQueue.Dequeue().Invoke();
+        }
+
         public static void Draw(this Map map) => map.Draw(false);
 
         public static void Draw(Map myMap, Map oppenentMap, bool showLegend = false)
         {
+            Console.Clear();
             if (showLegend)
                 DrawLegend();
             DrawHeader();
-
-
-
+            
             //Write Names line
             Console.Write("     ");// Padding for Y index numbers & Leading space for formatting
             Console.BackgroundColor = ConsoleColor.DarkGreen;
@@ -145,26 +150,20 @@ namespace BattleShipConsole
 
             for (var x = 0; x < length; x++)
                 sb.Append("-----");
-                //Console.Write("-----");
+                
 
             var line = sb.ToString();
             Console.Write(line.Substring(0, line.Length - 2));
-
-            //Console.CursorLeft--;
-            //Console.CursorLeft--;
-            //Console.ForegroundColor = Console.BackgroundColor;
+            
             Console.Write(" ");
-            //Console.ResetColor();
-
-
         }
 
         private static void DrawHeader()
         {
             Console.Write("     ");
-            Console.ForegroundColor = ConsoleColor.Blue;
-            Console.BackgroundColor = ConsoleColor.Gray;
-            Console.Write("##################################### BATTLE SHIP #####################################");
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Console.BackgroundColor = ConsoleColor.DarkGray;
+            Console.Write("############################################ BATTLE SHIP ##################################################");
             Console.ResetColor();
             Console.WriteLine();
         }
@@ -309,7 +308,11 @@ namespace BattleShipConsole
             Ask("Are you sure you want to quit? [y|n]");
             var rawInput = Console.ReadLine()?.Replace(Environment.NewLine, "").Trim() ?? string.Empty;
             if (rawInput == "y" || rawInput == "Y")
+            {
+                Console.Clear();
                 Environment.Exit(0);
+            }
+                
         }
 
         public static void Error(string msg)

@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
+using BattleShipGame.Identity;
 using static BattleShipGame.Events.TileHitEvents;
 
 namespace BattleShipGame.Ships
@@ -13,6 +14,7 @@ namespace BattleShipGame.Ships
         public Coordinate[] Location { get; }
         public bool Sunken;
         public SinkEvent OnSinking;
+        public ShipHitEvent OnShipHit;
         public HitEvent OnHit;
         public readonly string Name;
 
@@ -26,18 +28,20 @@ namespace BattleShipGame.Ships
                 Hull.Add(coord, new Tile {OnHit = WhenHit, Status = TileStatus.Ship});
         }
 
-        private void WhenHit(Coordinate location)
+        private void WhenHit(Player player, Coordinate location)
         {
             Hull[location].Status = TileStatus.Hit;
-            OnHit?.Invoke(location); //?? why location?
+            OnShipHit?.Invoke(player);
+
             if (Hull.Any(x => x.Value.Status != TileStatus.Hit)) return;
 
-            OnSinking?.Invoke();
-            //Sink the ship if all tiles in the Hull have been hit
+            //Ship sinks if all tiles in the Hull have been hit
             foreach (var tile in Hull.Values)
                 tile.Status = TileStatus.Sunk;
 
             Sunken = true;
+            OnSinking?.Invoke(player);
+            
         }
     }
 }

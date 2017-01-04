@@ -3,5 +3,6 @@
     public class Player
     {
         public string Name;
+        public Map Map { get; internal set; }
     }
 }

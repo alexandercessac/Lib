@@ -9,159 +9,155 @@ namespace BattleShipConsole
 {
     internal static class Program
     {
-        public static Map MyMap { get; private set; }
         public enum Direction { North, East, South, West }
-        
-        private static void RunOnePlayerGame()
-        {
-            Ask("Enter player1 name");
-
-            //Init map
-            MyMap = new Map(new Player {Name = Console.ReadLine()}, 10, 10);
-            MyMap.Draw(showLegend: true);
-
-            MyMap.SetShip(GetShip(MyMap));
-            
-            MyMap.SetShip(GetShip(MyMap));
-            
-            Console.Clear();
-            MyMap.Draw();
-
-            while (MyMap.ActiveShips != 0)
-                MyMap.Fire(GetCoordinate());
-        }
 
         private static void Main(string[] args)
         {
-            Console.Title = "BattleShip!";
+            Console.Clear();
+            Msg("Please select playmode");
+            Msg("           ########################################");
+            Msg("           #          [1] VS CPU                  #");
+            Msg("           #          [2] HOST MULTIPLAYER        #");
+            Msg("           #          [3] JOIN MULTIPLAYER        #");
+            Msg("           ########################################");
+            switch (GetInput<uint>("Select mode [1-3]", "[1-3]"))
+            {
+                case 1:
+                    Console.Clear();
+                    PlayerVsCpu();
+                    break;
+                case 2:
+                    Console.Clear();
+                    //TODO:
+                    break;
+                case 3:
+                    Console.Clear();
+                    //TODO:
+                    break;
+                    
+            }
             
-            var player1Name = GetInput("Enter player name", ".+");
-            var shipCountPerPlayer = GetInput<uint>("Enter number of ships for this game", "10|[1-9]");
+
+            
+        }
+
+        private static void PlayerVsCpu()
+        {
+            Console.Title = "BattleShip!";
+
+            var player = new Player {Name = GetInput("Enter player name", ".+")};
+            var cpu = new Player {Name = "CPU"};
 
             var options = new GameConfig
             {
-                MapWidth = 10,
-                MapHeight = 10,
                 Players = new[]
                 {
-                    new Player {Name = player1Name},
-                    new Player {Name = "CPU"} 
+                    player,
+                    cpu
                 }
-            };
+            }
+                .WithMapHeight(10)
+                .WithMapWidth(10);
 
             var gameState = new Game(options);
 
-            var myMap = gameState.Maps[0];
-            var oppenentMap = gameState.Maps[1];
-
             //Init
-            Draw(myMap, oppenentMap, true);
+            Draw(player.Map, cpu.Map, true);
+
+            var shipCountPerPlayer = GetInput<uint>("Enter number of ships for this game", "10|[1-9]");
 
             for (var i = 0; i < shipCountPerPlayer; i++)
-                SetPlayerAndCpuShip(myMap, oppenentMap);
+                SetPlayerAndCpuShip(player, cpu);
 
-            while (myMap.ActiveShips != 0 || oppenentMap.ActiveShips != 0)
+            while (player.Map.HasActiveShips || cpu.Map.HasActiveShips)
             {
                 EventQueue.Enqueue(Console.Clear);
-                EventQueue.Enqueue(() => Draw(myMap, oppenentMap, true));
+                EventQueue.Enqueue(() => Draw(player.Map, cpu.Map, true));
 
-                if (!oppenentMap.Fire(GetCoordinate()))
-                    EventQueue.Enqueue(() => Info($"{myMap.Captain.Name} miss"));
+                if (!cpu.Map.Fire(player, GetCoordinate()))
+                    EventQueue.Enqueue(() => Info($"{player.Map.Captain.Name} miss"));
 
                 //Cpu fire
-                var availableShots = myMap.Tiles.Where(t => t.Value.Status == TileStatus.OpenOcean).ToArray();
+                var availableShots = player.Map.Tiles.Where(t => t.Value.Status == TileStatus.OpenOcean).ToArray();
                 var coordinate = availableShots[new Random().Next(0, availableShots.Length - 1)].Key;
 
-                if (!myMap.Fire(coordinate))
-                    EventQueue.Enqueue(() => Info($"{oppenentMap.Captain.Name} miss"));
+                if (!player.Map.Fire(cpu, coordinate))
+                    EventQueue.Enqueue(() => Info($"{cpu.Map.Captain.Name} miss"));
 
-                while (EventQueue.Count > 0)
-                    EventQueue.Dequeue().Invoke();
+                DoEvents();
             }
         }
 
-        private static void SetPlayerAndCpuShip(Map myMap, Map oppenentMap)
+        private static void SetPlayerAndCpuShip(Player player, Player cpu)
         {
-            
-            var newShip1 = GetShip(myMap);
-            
+
+            var playerShip = player.GetShip();
+
             //Ensure ship can be set at this location on the map
-            var shipSet = myMap.SetShip(newShip1);
-            while (!shipSet)
+            while (!player.Map.SetShip(playerShip))
             {
                 Error("Could not set ship at location");
-                newShip1 = GetShip(myMap);
-                shipSet = myMap.SetShip(newShip1);
+                playerShip = player.GetShip();
             }
 
             //Set CPU ship with the same name and size
-            shipSet = oppenentMap.SetShip(GetCpuShip(newShip1.Name, newShip1.Size, oppenentMap));
+            var shipSet = cpu.Map.SetShip(cpu.GetCpuShip(playerShip.Name, playerShip.Size));
             //Ensure ship can be set at this location on the map
             while (!shipSet)
-                shipSet = oppenentMap.SetShip(GetCpuShip(newShip1.Name, newShip1.Size, oppenentMap));
+                shipSet = cpu.Map.SetShip(cpu.GetCpuShip(playerShip.Name, playerShip.Size));
 
             //draw updated map
             Console.Clear();
-            Draw(myMap, oppenentMap, true);
+            Draw(player.Map, cpu.Map, true);
         }
 
 
-        private static void Fire(this Map map, Coordinate coord)
+        private static Ship GetCpuShip(this Player cpu, string name, uint length)
         {
+            var ship = new Ship(GetCpuShipCoordinates(length, cpu.Map), name);
 
-
-            if (!map.Fire(coord))
-                EventQueue.Enqueue(() => Info("Miss"));
-
-
-        }
-
-        private static Ship GetCpuShip(string name, uint length, Map map)
-        {
-            var ship = new Ship(GetCpuShipCoordinates(length, map), name);
-
-            SetCpuShipEvents(map, ship);
+            SetEnemyShipEvents(cpu, ship);
             return ship;
         }
 
-        private static Ship GetShip(Map map = null)
+        private static Ship GetShip(this Player player)
         {
-            var ship = new Ship(map.GetUserShipCoordinates(), GetInput("Enter name of first Ship", ".+"));
+            var ship = new Ship(player.Map.GetUserShipCoordinates(), GetInput("Enter name of first Ship", ".+"));
 
-            SetShipEvents(map, ship);
+            SetShipEvents(player, ship);
             return ship;
         }
 
-        private static void SetCpuShipEvents(Map map, Ship ship)
+        private static void SetEnemyShipEvents(Player player, Ship ship)
         {
             //TODO: other events?
-            ship.OnSinking += () =>
+            ship.OnSinking += attacker =>
             {
-                EventQueue.Enqueue(() => Msg($"{map.Captain.Name}'s {ship.Name} has been sunk!"));
+                EventQueue.Enqueue(() => Msg($"{attacker.Name} sunk {player.Name}'s {ship.Name}!"));
 
-                if (map != null) map.ActiveShips--;
+                if (player.Map != null) player.Map.ActiveShips--;
 
-                if (map?.ActiveShips == 0)
+                if (player.Map?.ActiveShips == 0)
                     EventQueue.Enqueue(Win);
 
             };
-            ship.OnHit += location => EventQueue.Enqueue(() => Msg($"{map.Captain.Name}'s ship has be hit!"));
+            ship.OnHit += (attacker, location) => EventQueue.Enqueue(() => Msg($"{attacker.Name} hit {player.Name}'s ship!"));
         }
 
-        private static void SetShipEvents(Map map, Ship ship)
+        private static void SetShipEvents(Player player, Ship ship)
         {
             //TODO: other events?
-            ship.OnSinking += () =>
+            ship.OnSinking += attacker =>
             {
-                EventQueue.Enqueue(() => Error($"{map.Captain.Name}'s {ship.Name} has been sunk!"));
+                EventQueue.Enqueue(() => Msg($"{attacker.Name} sunk {player.Name}'s {ship.Name}!"));
 
-                if (map != null) map.ActiveShips--;
+                if (player.Map != null) player.Map.ActiveShips--;
 
-                if (map?.ActiveShips == 0)
+                if (player.Map?.ActiveShips == 0)
                     EventQueue.Enqueue(Lose);
 
             };
-            ship.OnHit += location => EventQueue.Enqueue(() => Error($"{map.Captain.Name}'s ship has be hit!"));
+            ship.OnHit += (attacker, location) => EventQueue.Enqueue(() => Msg($"{attacker.Name} hit {player.Name}'s ship!"));
         }
 
         private static void Win()
