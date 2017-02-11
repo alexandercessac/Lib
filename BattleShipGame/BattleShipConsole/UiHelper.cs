@@ -34,7 +34,7 @@ namespace BattleShipConsole
             Console.ResetColor();
             Console.Write(" ");//Trailing space for formatting
 
-            Console.Write("  |  "); //Map Separator
+            Console.Write("     "); //Map Separator
             
             Console.Write("     ");// Padding for Y index numbers & Leading space for formatting
             Console.BackgroundColor = ConsoleColor.DarkRed;
@@ -55,7 +55,7 @@ namespace BattleShipConsole
             Console.ResetColor();
             for (var x = 0; x < myMap.BoardWidth; x++) Console.Write($" [{x}] ");
 
-            Console.Write("  |  ");
+            Console.Write("     "); //Map Separator
 
             Console.ForegroundColor = Console.BackgroundColor;
             Console.Write($"[0] ");
@@ -71,7 +71,8 @@ namespace BattleShipConsole
             for (var y = 0; y < myMap.BoardHeight; y++)
             {
                 WriteFiller(myMap.BoardWidth);
-                Console.Write("  |  ");
+                //Console.Write("  |  ");
+                Console.Write("     "); //Map Separator
                 WriteFiller(oppenentMap.BoardWidth);
                 Console.WriteLine();
 
@@ -80,8 +81,7 @@ namespace BattleShipConsole
                 for (var x = 0; x < myMap.BoardWidth; x++)
                     DrawTile(myMap.Tiles[new Coordinate(x, y)].Status);
 
-                //separator
-                Console.Write("  |  ");
+                Console.Write("     "); //Map Separator
 
                 //draw width of second map
                 Console.Write($"[{y}] ");
@@ -163,7 +163,7 @@ namespace BattleShipConsole
             Console.Write("     ");
             Console.ForegroundColor = ConsoleColor.DarkBlue;
             Console.BackgroundColor = ConsoleColor.DarkGray;
-            Console.Write("############################################ BATTLE SHIP ##################################################");
+            Console.Write("############################################### BATTLE SHIP ###############################################");
             Console.ResetColor();
             Console.WriteLine();
         }

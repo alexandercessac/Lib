@@ -35,11 +35,22 @@ namespace BattleShipConsole
                     break;
                 case 3:
                     Console.Clear();
+                    JoinMultiplayer();
                     //TODO:
                     break;
                     
             }
             
+        }
+
+        private static void JoinMultiplayer()
+        {
+            Console.Clear();
+            Console.Write("Enter Ip address of game to join: ");
+            Console.ReadLine();
+
+
+            throw new NotImplementedException();
         }
 
         private static void HostMultiplayer()
@@ -132,7 +143,7 @@ namespace BattleShipConsole
                     EventQueue.Enqueue(() => Info($"{player.Map.Captain.Name} miss"));
 
                 //Cpu fire
-                var availableShots = player.Map.Tiles.Where(t => t.Value.Status == TileStatus.OpenOcean).ToArray();
+                var availableShots = player.Map.Tiles.Where(t => t.Value.Status == TileStatus.OpenOcean || t.Value.Status == TileStatus.Ship).ToArray();
                 var coordinate = availableShots[new Random().Next(0, availableShots.Length - 1)].Key;
 
                 if (!player.Map.Fire(cpu, coordinate))
@@ -176,7 +187,7 @@ namespace BattleShipConsole
 
         private static Ship GetShip(this Player player)
         {
-            var ship = new Ship(player.Map.GetUserShipCoordinates(), GetInput("Enter name of first Ship", ".+"));
+            var ship = new Ship(player.Map.GetUserShipCoordinates(), GetInput("Enter name of Ship", ".+"));
 
             SetShipEvents(player, ship);
             return ship;
