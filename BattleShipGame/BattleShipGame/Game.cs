@@ -5,6 +5,7 @@ namespace BattleShipGame
     public class GameConfig
     {
         public Player[] Players;
+        public uint NumberOfShips = 3;
         public uint MapHeight { get; private set; }
         public uint MapWidth { get; private set; }
 
@@ -27,11 +28,12 @@ namespace BattleShipGame
     {
         //public Map[] Maps;
         public Player[] Players;
+        public uint NumberOfShips;
 
         public Game(GameConfig config)
         {
             //Maps = new Map[config.Players.Length];
-
+            NumberOfShips = config.NumberOfShips;
             Players = config.Players;
             //for (var i = 0; i < config.Players.Length; i++)
             //    Maps[i] = new Map(config.Players[i], config.MapWidth, config.MapHeight);

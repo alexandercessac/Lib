@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
+using System.Threading;
+using BattleShipConsole.Network;
 using BattleShipGame;
 using BattleShipGame.Identity;
 using BattleShipGame.Ships;
@@ -15,6 +15,8 @@ namespace BattleShipConsole
 
         private static void Main(string[] args)
         {
+            Console.Title = "BattleShip!";
+
             Console.Clear();
             Msg("Please select playmode");
             Msg("           ########################################");
@@ -38,9 +40,9 @@ namespace BattleShipConsole
                     JoinMultiplayer();
                     //TODO:
                     break;
-                    
+
             }
-            
+
         }
 
         private static void JoinMultiplayer()
@@ -56,62 +58,99 @@ namespace BattleShipConsole
         private static void HostMultiplayer()
         {
 
-            IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-            IPAddress ipAddress = ipHostInfo.AddressList[0];
-            IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 1738);
+            //IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
+            //IPAddress ipAddress = ipHostInfo.AddressList[0];
+            var cts = new CancellationTokenSource();
 
-            //TODO:
-            //https://msdn.microsoft.com/en-us/library/system.net.httplistener(v=vs.110).aspx
-            //tcp calls are firewalled :( try the above HttpListener example?
-            var tmp = new HttpListener();
-            tmp.Prefixes.Add("http://localhost/BattleShip");
+            var player = new Player { Name = GetInput("Enter player name", ".+") };
+            var opponent = new Player();
 
-            var server = new TcpListener(localEndPoint);
-
-            try
+            var options = new GameConfig
             {
-                server.Start();
-                Info("Waiting for players...");
-
-                var pendingClient = server.AcceptTcpClientAsync();
-
-                var waitCount = 0;
-                while (!pendingClient.IsCompleted)
+                Players = new[]
                 {
-                    Console.Clear();
-                    // doesnt work
-                    Info($"Waiting for players{Enumerable.Repeat(".", waitCount)}");
-                    waitCount++;
-
-                    if (waitCount != 10) continue;
-
-                    if (GetInput("No one is joining. Keep waiting?", "y|Y|n|N").ToUpper() == "Y")
-                        return;
-                    else
-                        waitCount = 0;
+                    player,
+                    null
                 }
-
-                Msg("Connected!");
-
-
-                
-
-                
-
             }
-            catch (Exception e)
+                .WithMapHeight(10)
+                .WithMapWidth(10);
+
+            var gameState = new Game(options);
+
+            Info("Waiting for players...");
+
+            Listener.PlayerConnected += p =>
             {
-                
+                //Todo: handle players joining in a better way
+                Listener.WaitForPlayers = false;
+                gameState.Players[1] = opponent = p;
+                Msg($"{opponent.Name} Connected!");
+            };
+
+            var hostTask = Listener.HostGame(gameState, cts.Token);
+
+
+
+            for (var i = 0; i < gameState.NumberOfShips; i++)
+            {
+                SetPlayerShip(player);
+                player.Map.Draw(true);
             }
-            finally { server.Stop();}
+
+
+
+
+
+            var waitCount = 0;
+            while (Listener.WaitForPlayers)
+            {
+                Console.Clear();
+                // doesnt work
+                Info($"Waiting for players{Enumerable.Repeat(".", waitCount)}");
+                waitCount++;
+
+                if (waitCount != 10) continue;
+
+                if (GetInput("No one is joining. Keep waiting?", "y|Y|n|N").ToUpper() == "Y")
+                    return;
+                else
+                    waitCount = 0;
+            }
+
+
+            Listener.PlayerShot += s =>
+            {
+                if (!player.Map.Fire(s.Player, s.Coordinate))
+                    EventQueue.Enqueue(() => Info($"{opponent.Map.Captain.Name} miss"));
+            };
+
+            //Init
+            Draw(player.Map, opponent.Map, true);
+
+            while (player.Map.HasActiveShips || opponent.Map.HasActiveShips)
+            {
+                EventQueue.Enqueue(Console.Clear);
+                EventQueue.Enqueue(() => Draw(player.Map, opponent.Map, true));
+
+                if (!opponent.Map.Fire(player, GetCoordinate()))
+                    EventQueue.Enqueue(() => Info($"{player.Map.Captain.Name} miss"));
+
+                DoEvents();
+            }
+
+
+
         }
+
+
 
         private static void PlayerVsCpu()
         {
-            Console.Title = "BattleShip!";
 
-            var player = new Player {Name = GetInput("Enter player name", ".+")};
-            var cpu = new Player {Name = "CPU"};
+
+            var player = new Player { Name = GetInput("Enter player name", ".+") };
+            var cpu = new Player { Name = "CPU" };
 
             var options = new GameConfig
             {
@@ -151,6 +190,13 @@ namespace BattleShipConsole
 
                 DoEvents();
             }
+        }
+
+        private static void SetPlayerShip(Player player)
+        {
+            //Ensure ship can be set at this location on the map
+            while (!player.Map.SetShip(player.GetShip()))
+                Error("Could not set ship at location");
         }
 
         private static void SetPlayerAndCpuShip(Player player, Player cpu)

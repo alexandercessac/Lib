@@ -12,7 +12,7 @@ namespace BattleShipGame
         public int ActiveShips = 0;
         public bool HasActiveShips => ActiveShips > 0;
         public Dictionary<Coordinate, Tile> Tiles;
-        public Fleet Fleet;//TODO: make into its own object
+        //public Fleet Fleet;//TODO: make into its own object
 
         //PRIVATE MEMBERS
         public uint BoardWidth { get; }
@@ -38,6 +38,8 @@ namespace BattleShipGame
         public bool Fire(Player player, Coordinate coord)
         {
             //Attempt to raise event on specified tile
+            if (!Tiles.ContainsKey(coord)) return false;
+
             var tile = Tiles[coord];
 
             tile?.OnHit?.Invoke(player, coord);

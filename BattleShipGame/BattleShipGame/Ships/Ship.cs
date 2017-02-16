@@ -14,7 +14,7 @@ namespace BattleShipGame.Ships
         public Coordinate[] Location { get; }
         public bool Sunken;
         public SinkEvent OnSinking;
-        public ShipHitEvent OnShipHit;
+        //public ShipHitEvent OnShipHit;
         public HitEvent OnHit;
         public readonly string Name;
 
@@ -31,7 +31,7 @@ namespace BattleShipGame.Ships
         private void WhenHit(Player player, Coordinate location)
         {
             Hull[location].Status = TileStatus.Hit;
-            OnShipHit?.Invoke(player);
+            OnHit?.Invoke(player, location);
 
             if (Hull.Any(x => x.Value.Status != TileStatus.Hit)) return;
 
