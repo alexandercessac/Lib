@@ -14,3 +14,6 @@ C:\code\myCode\Lib\AsyncExamples\AsyncExampleRunnerUI\obj\Debug\AsyncExampleRunn
 C:\code\myCode\Lib\AsyncExamples\AsyncExampleRunnerUI\obj\Debug\AsyncExampleRunnerUI.csproj.GenerateResource.Cache
 C:\code\myCode\Lib\AsyncExamples\AsyncExampleRunnerUI\obj\Debug\AsyncExampleRunnerUI.exe
 C:\code\myCode\Lib\AsyncExamples\AsyncExampleRunnerUI\obj\Debug\AsyncExampleRunnerUI.pdb
+C:\code\myCode\Lib\AsyncExamples\AsyncExampleRunnerUI\bin\Debug\AsyncExample.dll
+C:\code\myCode\Lib\AsyncExamples\AsyncExampleRunnerUI\bin\Debug\AsyncExample.pdb
+C:\code\myCode\Lib\AsyncExamples\AsyncExampleRunnerUI\obj\Debug\AsyncExampleRunnerUI.Form1.resources

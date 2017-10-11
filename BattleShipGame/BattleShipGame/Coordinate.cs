@@ -1,21 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace BattleShipGame
 {
+    //[JsonConverter(typeof(CoordinateConverter))]
     public struct Coordinate
     {
         public int X;
         public int Y;
 
+        [JsonConstructor]
         public Coordinate(int x, int y)
         {
             X = x;
             Y = y;
         }
 
+        public override string ToString() => $"{X},{Y}";
     }
+
+  
 }

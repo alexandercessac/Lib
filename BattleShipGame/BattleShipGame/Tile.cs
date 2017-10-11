@@ -5,7 +5,7 @@ namespace BattleShipGame
     public class Tile
     {
         public TileStatus Status;
-        public HitEvent OnHit;
+        internal HitEvent OnHit;
 
         public Tile()
         {

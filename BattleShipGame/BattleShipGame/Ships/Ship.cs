@@ -1,6 +1,4 @@
 ﻿using System.Linq;
-using System.Collections.Generic;
-using BattleShipGame.Identity;
 using static BattleShipGame.Events.TileHitEvents;
 
 namespace BattleShipGame.Ships
@@ -10,28 +8,29 @@ namespace BattleShipGame.Ships
         public uint Size => 
             uint.Parse((Hull?.Keys.Count ?? 0).ToString());
 
-        public Dictionary<Coordinate, Tile> Hull { get; set; }
+        
+        public TileDictionary Hull { get; set; }
         public Coordinate[] Location { get; }
         public bool Sunken;
-        public SinkEvent OnSinking;
+        internal SinkEvent OnSinking;
         //public ShipHitEvent OnShipHit;
-        public HitEvent OnHit;
+        internal HitEvent OnHit;
         public readonly string Name;
 
         public Ship(Coordinate[] location, string name)
         {
             Name = name;
             Location = location;
-            Hull = new Dictionary<Coordinate, Tile>();
+            Hull = new TileDictionary();
             
             foreach (var coord in location)
                 Hull.Add(coord, new Tile {OnHit = WhenHit, Status = TileStatus.Ship});
         }
 
-        private void WhenHit(Player player, Coordinate location)
+        internal void WhenHit(string playerName, Coordinate location)
         {
             Hull[location].Status = TileStatus.Hit;
-            OnHit?.Invoke(player, location);
+            OnHit?.Invoke(playerName, location);
 
             if (Hull.Any(x => x.Value.Status != TileStatus.Hit)) return;
 
@@ -40,7 +39,7 @@ namespace BattleShipGame.Ships
                 tile.Status = TileStatus.Sunk;
 
             Sunken = true;
-            OnSinking?.Invoke(player);
+            OnSinking?.Invoke(playerName);
             
         }
     }

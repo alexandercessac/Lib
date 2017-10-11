@@ -26,9 +26,12 @@ namespace BattleShipGame
 
     public class Game
     {
+        public string Id;
         //public Map[] Maps;
         public Player[] Players;
         public uint NumberOfShips;
+
+        public Game() { }
 
         public Game(GameConfig config)
         {

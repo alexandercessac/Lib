@@ -4,7 +4,7 @@ namespace BattleShipGame
 {
     public class Shot
     {
-        public Player Player;
+        public string PlayerName;
         public Coordinate Coordinate;
     }
 }

@@ -7,42 +7,45 @@ namespace BattleShipGame
 {
     public class Map
     {
-        public readonly Player Captain;
+        public string CaptainName;
         public int TotalShips = 0;
         public int ActiveShips = 0;
-        public bool HasActiveShips => ActiveShips > 0;
-        public Dictionary<Coordinate, Tile> Tiles;
+        internal bool HasActiveShips => ActiveShips > 0;
         //public Fleet Fleet;//TODO: make into its own object
+        public List<Ship> Fleet = new List<Ship>();
 
-        //PRIVATE MEMBERS
-        public uint BoardWidth { get; }
-        public uint BoardHeight { get; }
+        public uint BoardWidth { get; set; }
+        public uint BoardHeight { get; set; }
+        public TileDictionary TileDictionary;
 
+        public Map() { }
         public Map(Player captain) : this(captain, 10, 10) { }
         public Map(Player captain, uint width, uint height)
         {
             BoardHeight = height;
-            Captain = captain;
+            CaptainName = captain.Name;
             BoardWidth = width;
             ResetMap();
         }
 
         public void ResetMap()
         {
-            Tiles = new Dictionary<Coordinate, Tile>();
+            TileDictionary = new TileDictionary();
             for (var x = 0; x < BoardWidth; x++)
                 for (var y = 0; y < BoardHeight; y++)
-                    Tiles.Add(new Coordinate(x, y), new Tile());
+                    TileDictionary.Add(new Coordinate(x, y), new Tile());
         }
 
-        public bool Fire(Player player, Coordinate coord)
+
+        public bool Fire(Player player, Coordinate coord) => Fire(new Shot {Coordinate = coord, PlayerName = player.Name});
+        public bool Fire(Shot shot)
         {
             //Attempt to raise event on specified tile
-            if (!Tiles.ContainsKey(coord)) return false;
+            if (!TileDictionary.ContainsKey(shot.Coordinate)) return false;
 
-            var tile = Tiles[coord];
+            var tile = TileDictionary[shot.Coordinate];
 
-            tile?.OnHit?.Invoke(player, coord);
+            tile?.OnHit?.Invoke(shot.PlayerName, shot.Coordinate);
             
             //Check the resulting status of the specified tile
             switch (tile?.Status ?? default(TileStatus))
@@ -65,7 +68,7 @@ namespace BattleShipGame
             area.Keys.All(OpenOcean);
 
         public bool OpenOcean(Coordinate coord) => 
-            Tiles[coord].Status == TileStatus.OpenOcean;
+            TileDictionary[coord].Status == TileStatus.OpenOcean;
 
         public bool SetShip(params Ship[] newShips)
         {
@@ -93,9 +96,10 @@ namespace BattleShipGame
         private void Set(Ship newShip)
         {
             foreach (var hullPiece in newShip.Hull)
-                Tiles[hullPiece.Key] = hullPiece.Value;
+                TileDictionary[hullPiece.Key] = hullPiece.Value;
             ActiveShips++;
             TotalShips++;
+            Fleet.Add(newShip);
         }
         
     }

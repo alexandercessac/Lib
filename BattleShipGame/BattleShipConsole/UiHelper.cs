@@ -79,14 +79,15 @@ namespace BattleShipConsole
                 //draw width of first map
                 Console.Write($"[{y}] ");
                 for (var x = 0; x < myMap.BoardWidth; x++)
-                    DrawTile(myMap.Tiles[new Coordinate(x, y)].Status);
+                    DrawTile(myMap.TileDictionary[new Coordinate(x, y)].Status);
 
                 Console.Write("     "); //Map Separator
 
                 //draw width of second map
                 Console.Write($"[{y}] ");
                 for (var x = 0; x < oppenentMap.BoardWidth; x++)
-                    DrawOpponentTile(oppenentMap.Tiles[new Coordinate(x, y)].Status);
+                    //DrawOpponentTile(oppenentMap.TileDictionary[new Coordinate(x, y)].Status);
+                    DrawTile(oppenentMap.TileDictionary[new Coordinate(x, y)].Status);//replace with above to hide opponents ships from each other
 
                 Console.WriteLine();
             }
@@ -101,8 +102,8 @@ namespace BattleShipConsole
             var totalLength = (myMap.BoardWidth * 5) - 2;
             for (var x = 0; x < totalLength; x++)
             {
-                if (x < myMap.Captain.Name.Length)
-                    sb.Append(myMap.Captain.Name[x]);
+                if (x < myMap.CaptainName.Length)
+                    sb.Append(myMap.CaptainName[x]);
                 else if (totalLength - x <= strActiveShips.Length)
                     sb.Append(strActiveShips[(int)(totalLength - x - strActiveShips.Length) * -1]);
                 else
@@ -136,7 +137,7 @@ namespace BattleShipConsole
 
                 Console.Write($"[{y}] ");
                 for (var x = 0; x < map.BoardWidth; x++)
-                    DrawTile(map.Tiles[new Coordinate(x, y)].Status);
+                    DrawTile(map.TileDictionary[new Coordinate(x, y)].Status);
                 Console.WriteLine();
             }
         }

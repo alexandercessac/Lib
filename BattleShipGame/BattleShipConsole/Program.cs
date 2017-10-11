@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using BattleShipConsole.Network;
+using System.Threading.Tasks;
 using BattleShipGame;
 using BattleShipGame.Identity;
+using BattleShipGame.Network;
 using BattleShipGame.Ships;
+using Newtonsoft.Json;
 using static BattleShipConsole.UiHelper;
 
 namespace BattleShipConsole
@@ -15,6 +18,27 @@ namespace BattleShipConsole
 
         private static void Main(string[] args)
         {
+
+            ////It works
+            //var test = new Map
+            //{
+            //    TileDictionary = new TileDictionary
+            //{
+            //    { new Coordinate(0, 0), new Tile { Status = TileStatus.Sunk } },
+            //    { new Coordinate(0, 1), new Tile { Status = TileStatus.Sunk } }
+            //}
+            //};
+            //var teststring = JsonConvert.SerializeObject(test);
+
+            //var testdict = JsonConvert.DeserializeObject<Map>(teststring);
+
+            //var tmp = JsonConvert.SerializeObject(new Coordinate(20, 20));
+            //var testcoord = JsonConvert.DeserializeObject<Coordinate>(tmp);
+
+            //var tmp2 = JsonConvert.SerializeObject(new Ship(new[] {new Coordinate(0,1), new Coordinate(0, 0) }, "name"));
+            //var testship = JsonConvert.DeserializeObject<Ship>(tmp2);
+
+
             Console.Title = "BattleShip!";
 
             Console.Clear();
@@ -37,7 +61,7 @@ namespace BattleShipConsole
                     break;
                 case 3:
                     Console.Clear();
-                    JoinMultiplayer();
+                    JoinMultiplayer().Wait();
                     //TODO:
                     break;
 
@@ -45,12 +69,72 @@ namespace BattleShipConsole
 
         }
 
-        private static void JoinMultiplayer()
+        private static async Task JoinMultiplayer()
         {
             Console.Clear();
-            Console.Write("Enter Ip address of game to join: ");
-            Console.ReadLine();
 
+            var player = new Player { Name = GetInput("Enter player name", ".+") };
+
+            player.Map = new Map(player, 10, 10);
+
+            //create map
+            //var opponent = new Player();
+            //var options = new GameConfig { Players = new[] { player, opponent } }.WithMapHeight(10).WithMapWidth(10);
+            //new Game(options);
+
+            for (var i = 0; i < 3; i++)
+            {
+                SetPlayerShip(player);
+                Console.Clear();
+                player.Map.Draw(true);
+            }
+
+            Console.Write("Enter Ip address of game to join: ");
+            var ip = Console.ReadLine();
+
+            Client.Msg += Info;
+
+            Game game = null;
+
+            while (game == null)
+                game = await player.JoinGame(ip);
+
+            var oppenentMap = game.Players[0].Map;
+
+
+            foreach (var ship in oppenentMap.Fleet)
+                SetEnemyShipEvents(game.Players[0], ship);
+
+            Draw(player.Map, oppenentMap, true);
+
+            while (player.Map.HasActiveShips || oppenentMap.HasActiveShips)
+            {
+                EventQueue.Enqueue(Console.Clear);
+                EventQueue.Enqueue(() => Draw(player.Map, oppenentMap, true));
+
+                var coordinate = GetCoordinate();
+
+                var shot = new Shot { Coordinate = coordinate, PlayerName = player.Name };
+                var fireingShot = shot.Fire();
+
+                if (!oppenentMap.Fire(shot))
+                    EventQueue.Enqueue(() => Info($"{player.Name} miss"));
+
+                var fireResult = await fireingShot;
+
+                if (fireResult != null)
+                {
+                    oppenentMap.ActiveShips = fireResult.Players[0].Map.ActiveShips;
+
+                    foreach (var result in oppenentMap.TileDictionary)
+                        result.Value.Status = fireResult.Players[0].Map.TileDictionary[result.Key].Status;
+
+                    player.Map.TileDictionary = fireResult.Players[1].Map.TileDictionary;
+                }
+
+
+                DoEvents();
+            }
 
             throw new NotImplementedException();
         }
@@ -58,8 +142,6 @@ namespace BattleShipConsole
         private static void HostMultiplayer()
         {
 
-            //IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-            //IPAddress ipAddress = ipHostInfo.AddressList[0];
             var cts = new CancellationTokenSource();
 
             var player = new Player { Name = GetInput("Enter player name", ".+") };
@@ -70,7 +152,7 @@ namespace BattleShipConsole
                 Players = new[]
                 {
                     player,
-                    null
+                    opponent
                 }
             }
                 .WithMapHeight(10)
@@ -80,12 +162,22 @@ namespace BattleShipConsole
 
             Info("Waiting for players...");
 
+            var CONNECTING = new object();
+
             Listener.PlayerConnected += p =>
             {
-                //Todo: handle players joining in a better way
-                Listener.WaitForPlayers = false;
-                gameState.Players[1] = opponent = p;
-                Msg($"{opponent.Name} Connected!");
+                lock (CONNECTING)
+                {
+                    if (!Listener.WaitForPlayers) return;
+                    //Todo: handle players joining in a better way
+                    Listener.WaitForPlayers = false;
+                    gameState.Players[1] = opponent = p;
+
+                    foreach (var ship in opponent.Map.Fleet)
+                        SetEnemyShipEvents(opponent, ship);
+
+                    Msg($"{opponent.Name} Connected!");
+                }
             };
 
             var hostTask = Listener.HostGame(gameState, cts.Token);
@@ -95,6 +187,7 @@ namespace BattleShipConsole
             for (var i = 0; i < gameState.NumberOfShips; i++)
             {
                 SetPlayerShip(player);
+                Console.Clear();
                 player.Map.Draw(true);
             }
 
@@ -107,12 +200,13 @@ namespace BattleShipConsole
             {
                 Console.Clear();
                 // doesnt work
-                Info($"Waiting for players{Enumerable.Repeat(".", waitCount)}");
+                Info($"Waiting for players{string.Join("", Enumerable.Repeat(".", waitCount).ToArray())}");
                 waitCount++;
+                Thread.Sleep(2000);
 
                 if (waitCount != 10) continue;
 
-                if (GetInput("No one is joining. Keep waiting?", "y|Y|n|N").ToUpper() == "Y")
+                if (GetInput("No one is joining. Keep waiting?", "y|Y|n|N").ToUpper() == "N")
                     return;
                 else
                     waitCount = 0;
@@ -121,8 +215,8 @@ namespace BattleShipConsole
 
             Listener.PlayerShot += s =>
             {
-                if (!player.Map.Fire(s.Player, s.Coordinate))
-                    EventQueue.Enqueue(() => Info($"{opponent.Map.Captain.Name} miss"));
+                if (!player.Map.Fire(s))
+                    EventQueue.Enqueue(() => Info($"{opponent.Name} miss"));
             };
 
             //Init
@@ -134,13 +228,13 @@ namespace BattleShipConsole
                 EventQueue.Enqueue(() => Draw(player.Map, opponent.Map, true));
 
                 if (!opponent.Map.Fire(player, GetCoordinate()))
-                    EventQueue.Enqueue(() => Info($"{player.Map.Captain.Name} miss"));
+                    EventQueue.Enqueue(() => Info($"{player.Name} miss"));
 
                 DoEvents();
             }
 
-
-
+            cts.Cancel();
+            hostTask.Wait();
         }
 
 
@@ -179,14 +273,14 @@ namespace BattleShipConsole
                 EventQueue.Enqueue(() => Draw(player.Map, cpu.Map, true));
 
                 if (!cpu.Map.Fire(player, GetCoordinate()))
-                    EventQueue.Enqueue(() => Info($"{player.Map.Captain.Name} miss"));
+                    EventQueue.Enqueue(() => Info($"{player.Name} miss"));
 
                 //Cpu fire
-                var availableShots = player.Map.Tiles.Where(t => t.Value.Status == TileStatus.OpenOcean || t.Value.Status == TileStatus.Ship).ToArray();
+                var availableShots = player.Map.TileDictionary.Where(t => t.Value.Status == TileStatus.OpenOcean || t.Value.Status == TileStatus.Ship).ToArray();
                 var coordinate = availableShots[new Random().Next(0, availableShots.Length - 1)].Key;
 
                 if (!player.Map.Fire(cpu, coordinate))
-                    EventQueue.Enqueue(() => Info($"{cpu.Map.Captain.Name} miss"));
+                    EventQueue.Enqueue(() => Info($"{cpu.Name} miss"));
 
                 DoEvents();
             }
@@ -242,9 +336,9 @@ namespace BattleShipConsole
         private static void SetEnemyShipEvents(Player player, Ship ship)
         {
             //TODO: other events?
-            ship.OnSinking += attacker =>
+            ship.OnSinking += attackerName =>
             {
-                EventQueue.Enqueue(() => Msg($"{attacker.Name} sunk {player.Name}'s {ship.Name}!"));
+                EventQueue.Enqueue(() => Msg($"{attackerName} sunk {player.Map.CaptainName}'s {ship.Name}!"));
 
                 if (player.Map != null) player.Map.ActiveShips--;
 
@@ -252,15 +346,15 @@ namespace BattleShipConsole
                     EventQueue.Enqueue(Win);
 
             };
-            ship.OnHit += (attacker, location) => EventQueue.Enqueue(() => Msg($"{attacker.Name} hit {player.Name}'s ship!"));
+            ship.OnHit += (attackerName, location) => EventQueue.Enqueue(() => Msg($"{attackerName} hit {player.Name}'s ship!"));
         }
 
         private static void SetShipEvents(Player player, Ship ship)
         {
             //TODO: other events?
-            ship.OnSinking += attacker =>
+            ship.OnSinking += attackerName =>
             {
-                EventQueue.Enqueue(() => Msg($"{attacker.Name} sunk {player.Name}'s {ship.Name}!"));
+                EventQueue.Enqueue(() => Msg($"{attackerName} sunk {player.Name}'s {ship.Name}!"));
 
                 if (player.Map != null) player.Map.ActiveShips--;
 
@@ -268,14 +362,14 @@ namespace BattleShipConsole
                     EventQueue.Enqueue(Lose);
 
             };
-            ship.OnHit += (attacker, location) => EventQueue.Enqueue(() => Msg($"{attacker.Name} hit {player.Name}'s ship!"));
+            ship.OnHit += (attackerName, location) => EventQueue.Enqueue(() => Msg($"{attackerName} hit {player.Name}'s ship!"));
         }
 
         private static void Win()
         {
             Console.BackgroundColor = ConsoleColor.Green;
             Console.ForegroundColor = ConsoleColor.Black;
-            Console.WriteLine("Congratulations you have sunk all the battleships and have been promoted to Lord of the Kings Navy!");
+            Console.WriteLine(" Congratulations you have sunk all the battleships and have been promoted to Lord of the Kings Navy! ");
             Console.ResetColor();
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
@@ -286,7 +380,7 @@ namespace BattleShipConsole
         {
             Console.BackgroundColor = ConsoleColor.Red;
             Console.ForegroundColor = ConsoleColor.Black;
-            Console.WriteLine("The last resistence against the rebels has failed. All youre base are belong to us...");
+            Console.WriteLine(" The last resistence against the rebels has failed. All youre base are belong to us... ");
             Console.ResetColor();
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();

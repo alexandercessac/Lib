@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AsyncExample;
 using QueueManager;
 
 namespace AsyncExamples
 {
     class AsyncRunner
     {
-        private static readonly char[] ValidMenuChoices = { 'q', 'Q', '0', '1', '2' };
+        private static readonly char[] ValidMenuChoices = { 'q', 'Q', '0', '1', '2', '3' };
 
         static void Main()
         {
@@ -23,11 +26,21 @@ namespace AsyncExamples
                     case '0': DoDeadLockExample(); break;
                     case '1': DoMonitorQueueExample(); break;
                     case '2': DoMonitorQueueListenerExample(); break;
+                    case '3': RunTest(); break;
                     default:
                         quit = true;
                         break;
 
                 }
+            }
+        }
+
+        private static void RunTest()
+        {
+            var path = "C:/code/enterprise-apps/Component/AlderOrderProcessorConsumer/bin/Debug/AlderOrderProcessorConsumer.log";
+            using (var fs = new FileStream(path, FileMode.Open, FileAccess.ReadWrite))
+            {
+                
             }
         }
 
@@ -149,15 +162,16 @@ namespace AsyncExamples
 
         private static void DoDeadLockExample()
         {
-            //var myTask = new AsyncExample.DeadLockExample().DeadLockUnstartedTask();
-            var myTask = new AsyncExample.DeadLockExample().DeadLock();
-            //myTask.Wait();
+            DeadLockExample.GetResource();
+            ////var myTask = new AsyncExample.DeadLockExample().DeadLockUnstartedTask();
+            //var myTask = new AsyncExample.DeadLockExample().DeadLock();
+            ////myTask.Wait();
 
-            var x = myTask.Result;
+            //var x = myTask.Result;
 
-            Console.WriteLine("## RESULT OF TASK ##");
+            //Console.WriteLine("## RESULT OF TASK ##");
 
-            Console.WriteLine(x);
+            //Console.WriteLine(x);
 
             Console.ReadKey();
         }
@@ -175,6 +189,7 @@ namespace AsyncExamples
                 Console.WriteLine("             |                [0] : Deadlock Example                                     |");
                 Console.WriteLine("             |                [1] : Monitor Example                                      |");
                 Console.WriteLine("             |                [2] : Monitor Listener Example                             |");
+                Console.WriteLine("             |                [3] : Do a test thing                                      |");
                 Console.WriteLine("             |                Please enter [1-9] or [q] to quit                          |");
                 Console.WriteLine("             -----------------------------------------------------------------------------");
                 userInput = Console.ReadKey().KeyChar;

@@ -1,13 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Net;
-using BattleShipGame;
-using Newtonsoft.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using BattleShipGame.Identity;
+using Newtonsoft.Json;
 
-namespace BattleShipConsole.Network
+namespace BattleShipGame.Network
 {
     public static class Listener
     {
@@ -24,14 +23,15 @@ namespace BattleShipConsole.Network
             {
                 try
                 {
-                    listener.Prefixes.Add($"http://localhost/BattleShip");
+                    listener.Prefixes.Add($"http://localhost/BattleShip/");
                     listener.Start();
                     while (!token.IsCancellationRequested)
                     {
+                        //Await request
                         var pendingRequest = listener.GetContextAsync();
-
                         while (!pendingRequest.IsCompleted) await Task.Delay(100, token);
-
+                        if(token.IsCancellationRequested) break;
+                        //Get request context
                         var req = await pendingRequest;
 
                         switch (req.Request.HttpMethod)
@@ -51,7 +51,7 @@ namespace BattleShipConsole.Network
                                     else
                                     {
                                         PlayerConnected?.Invoke(player);
-                                        await req.Respond(201, state, token);
+                                        await req.Respond(202, state, token);
                                         continue;
                                     }
                                 }
@@ -59,7 +59,7 @@ namespace BattleShipConsole.Network
                                 {
                                     var shot = JsonConvert.DeserializeObject<Shot>(contentString);
                                     PlayerShot?.Invoke(shot);
-                                    await req.Respond(201, state, token);
+                                    await req.Respond(202, state, token);
                                 }
                                 break;
                             default:

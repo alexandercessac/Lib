@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Runtime.Remoting.Contexts;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AsyncExample
@@ -30,11 +32,38 @@ namespace AsyncExample
             i += await HelperFunctions.GetOneAsync();
             Console.WriteLine("i = {0}", i);
             i += HelperFunctions.GetOneAsync().Result;
-            
+
             Console.WriteLine("i = {0} you will never get in UI app..", i);
             return i.ToString();
         }
-       
+        
+        private static void HandleResponse(object x) { }
+
+        public static object GetResource()
+        {
+            var tmp = new Task(() => GetResourceAsync());
+            
+            var resource = Task.Run(GetResourceAsync).Result;
+
+            HandleResponse(resource);
+
+            return resource;
+        }
+
+        public static async Task<object> GetResourceAsync()
+        {
+            var resource = await LoadResourceAsync().ConfigureAwait(true);
+
+            HandleResponse(resource);
+
+            return resource;
+        }
+        
+        public static Task<object> LoadResourceAsync() => Task.Run(() =>
+        {
+            Thread.Sleep(3000);
+            return new object();
+        });
     }
 }
 
